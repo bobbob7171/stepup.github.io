@@ -1,0 +1,2128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StepUp Campus — Interactive Prototype</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --green:#0EBA82; --green-d:#079463; --green-bg:#E2F4EC; --green-soft:#D5F0E5;
+  --ink:#16241F; --sub:#5F6E69; --line:#EDF1EF; --card:#FFFFFF;
+  --amber:#F4A93B; --amber-bg:#FCF3E1; --rose:#F2786E; --rose-bg:#FDEBE9;
+  --purple:#8B5CF6; --purple-d:#7C3AED; --orange:#F59E0B; --blue:#3B82F6;
+  --bg:#F4F8F6;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{
+  font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #E7F6EF 0%, transparent 55%),
+    radial-gradient(1000px 700px at 110% 110%, #E3F2EC 0%, transparent 50%),
+    #EEF4F1;
+  color:var(--ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh; padding:28px 16px; gap:18px;
+}
+.stage{display:flex; align-items:flex-start; gap:36px; flex-wrap:wrap; justify-content:center;}
+
+/* ---------- side panel ---------- */
+.side{width:308px; max-width:90vw; position:sticky; top:24px;}
+.brandrow{display:flex; align-items:center; gap:12px; margin-bottom:14px;}
+.logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--green),var(--green-d));
+  display:grid;place-items:center;box-shadow:0 8px 18px rgba(14,186,130,.35);}
+.logo svg{width:24px;height:24px;}
+.brand h1{font-size:21px;font-weight:800;letter-spacing:-.3px;}
+.brand p{font-size:12.5px;color:var(--sub);font-weight:600;letter-spacing:.2px;}
+.side .lead{font-size:13.5px;color:var(--sub);line-height:1.55;margin:6px 0 16px;}
+.steps{display:flex;flex-direction:column;gap:7px;margin-bottom:16px;}
+.step{display:flex;gap:11px;align-items:flex-start;padding:10px 12px;border-radius:13px;
+  background:#fff;border:1px solid var(--line);transition:.25s; cursor:pointer;}
+.step.active{border-color:var(--green);box-shadow:0 6px 16px rgba(14,186,130,.14);background:#fff;}
+.step .num{width:23px;height:23px;border-radius:8px;background:var(--green-bg);color:var(--green-d);
+  font-size:11.5px;font-weight:800;display:grid;place-items:center;flex:none;transition:.25s;}
+.step.active .num{background:var(--green);color:#fff;}
+.step .t{font-size:13px;font-weight:700;}
+.step .d{font-size:11px;color:var(--sub);font-weight:500;margin-top:1px;line-height:1.4;}
+.controls{display:flex;gap:10px;}
+.btn-ghost{flex:1;padding:11px;border-radius:12px;border:1px solid var(--line);background:#fff;
+  font-family:inherit;font-weight:700;font-size:12.5px;color:var(--ink);cursor:pointer;transition:.2s;}
+.btn-ghost:hover{border-color:var(--green);color:var(--green-d);}
+.hint{font-size:11.5px;color:var(--sub);margin-top:14px;line-height:1.55;}
+.hint b{color:var(--green-d);}
+
+/* ---------- device ---------- */
+.device{width:392px;height:812px;border-radius:54px;background:#0B0F14;padding:13px;
+  box-shadow:0 40px 90px -30px rgba(16,40,30,.55), 0 0 0 1px rgba(0,0,0,.04);
+  position:relative;flex:none;max-width:94vw;}
+.screen{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#fff;}
+.notch{position:absolute;top:13px;left:50%;transform:translateX(-50%);width:120px;height:30px;
+  background:#0B0F14;border-radius:0 0 18px 18px;z-index:60;}
+
+/* status bar */
+.status{position:absolute;top:0;left:0;right:0;height:52px;display:flex;align-items:center;
+  justify-content:space-between;padding:18px 28px 0;font-size:14px;font-weight:700;z-index:50;}
+.status .dots{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;}
+.status .dots b{display:inline-flex;gap:2px;}
+.status .dots i{width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block;}
+
+/* page system */
+.pages{position:absolute;inset:0;}
+.page{position:absolute;inset:0;opacity:0;visibility:hidden;transform:translateX(16px) scale(.99);
+  transition:opacity .40s ease, transform .40s cubic-bezier(.2,.8,.2,1);pointer-events:none;}
+.page.show{opacity:1;visibility:visible;transform:none;pointer-events:auto;}
+.scroll{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* generic */
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;letter-spacing:.3px;}
+.bolt{display:inline-grid;place-items:center;}
+
+/* ===== LOCK / NOTIFICATION ===== */
+#lock{background:linear-gradient(170deg,#10243B 0%,#0E2A2E 55%,#10322B 100%);color:#fff;}
+#lock .status{color:#fff;}
+.lk-top{padding:74px 0 0;text-align:center;}
+.lk-lock{font-size:15px;opacity:.7;margin-bottom:8px;}
+.lk-date{font-size:17px;font-weight:600;opacity:.92;}
+.lk-time{font-size:84px;font-weight:800;letter-spacing:-2px;line-height:1;margin-top:2px;}
+.lk-label{margin:46px 24px 10px;font-size:13px;font-weight:700;opacity:.65;}
+.notif{margin:0 16px;background:rgba(255,255,255,.10);backdrop-filter:blur(22px);
+  border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:18px 18px 16px;cursor:pointer;
+  transition:.2s;animation:notifIn .6s .15s both;}
+.notif:hover{background:rgba(255,255,255,.15);}
+@keyframes notifIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+.notif-head{display:flex;align-items:center;gap:9px;margin-bottom:11px;}
+.notif-ic{width:26px;height:26px;border-radius:8px;background:var(--green);display:grid;place-items:center;}
+.notif-ic svg{width:15px;height:15px;}
+.notif-head .app{font-size:12px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;flex:1;}
+.notif-head .ago{font-size:12px;opacity:.6;font-weight:600;}
+.notif h3{font-size:19px;font-weight:800;margin-bottom:6px;}
+.notif p{font-size:13.5px;opacity:.82;line-height:1.5;margin-bottom:14px;}
+.notif-actions{display:flex;gap:8px;}
+.na{flex:1;padding:10px 6px;border-radius:12px;font-size:12.5px;font-weight:700;text-align:center;
+  border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.06);cursor:pointer;transition:.18s;}
+.na.primary{background:var(--green);border-color:var(--green);}
+.na:hover{transform:translateY(-1px);}
+.na.primary:hover{background:#10c98e;}
+.lk-streak{margin:16px 22px 0;font-size:13px;opacity:.8;text-align:center;}
+.lk-dismiss{margin:14px 22px 0;font-size:12px;opacity:.5;text-align:center;cursor:pointer;text-decoration:underline;}
+.lk-home{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:130px;height:5px;
+  border-radius:3px;background:rgba(255,255,255,.55);}
+.lk-tap{position:absolute;bottom:38px;left:0;right:0;text-align:center;font-size:12px;opacity:.5;
+  animation:bob 1.8s infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(5px);}}
+
+/* ===== HOME ===== */
+#home{background:#F7FAF8;}
+.h-scroll{padding:62px 20px 96px;}
+.greet{font-size:25px;font-weight:800;letter-spacing:-.4px;}
+.greet .wave{display:inline-block;animation:wave 2.4s infinite;transform-origin:70% 70%;}
+@keyframes wave{0%,60%,100%{transform:rotate(0);}10%{transform:rotate(16deg);}20%{transform:rotate(-8deg);}30%{transform:rotate(16deg);}40%{transform:rotate(-4deg);}}
+.subdate{font-size:13.5px;color:var(--sub);font-weight:600;margin-top:3px;margin-bottom:18px;}
+.next-card{background:linear-gradient(135deg,var(--green) 0%,#0BA876 100%);border-radius:24px;
+  padding:20px 20px 18px;color:#fff;box-shadow:0 16px 30px -12px rgba(14,186,130,.6);position:relative;overflow:hidden;}
+.next-card::after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;
+  border-radius:50%;background:rgba(255,255,255,.10);}
+.nc-top{display:flex;justify-content:space-between;align-items:center;}
+.nc-kick{font-size:11px;font-weight:800;letter-spacing:1px;opacity:.85;text-transform:uppercase;}
+.nc-chip{background:rgba(255,255,255,.2);font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:20px;}
+.nc-title{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:8px 0 2px;}
+.nc-sub{font-size:14px;font-weight:600;opacity:.92;}
+.nc-meta{font-size:13px;font-weight:600;opacity:.9;margin-top:9px;display:flex;align-items:center;gap:5px;}
+.nc-btn{margin-top:15px;width:100%;background:#fff;color:var(--green-d);border:none;border-radius:14px;
+  padding:13px;font-family:inherit;font-weight:800;font-size:14.5px;cursor:pointer;transition:.2s;}
+.nc-btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.12);}
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px;}
+.sec-head h2{font-size:16.5px;font-weight:800;}
+.sec-head a{font-size:13px;font-weight:700;color:var(--green-d);cursor:pointer;}
+.sched{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;}
+.sl{display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.18s;}
+.sl:last-child{border-bottom:none;}
+.sl:hover{background:#FAFDFB;}
+.sl .time{font-size:13px;font-weight:800;width:42px;color:var(--ink);}
+.sl .dot{width:9px;height:9px;border-radius:50%;background:#D6DEDA;flex:none;}
+.sl.on .dot{background:var(--green);box-shadow:0 0 0 4px var(--green-bg);}
+.sl.added .dot{background:var(--purple);box-shadow:0 0 0 4px #EEE7FD;}
+.sl .info{flex:1;}
+.sl .info .c{font-size:14px;font-weight:700;}
+.sl .info .loc{font-size:12px;color:var(--sub);font-weight:500;margin-top:1px;}
+.sl .tag{font-size:10.5px;font-weight:800;color:var(--green-d);background:var(--green-bg);
+  padding:4px 9px;border-radius:8px;letter-spacing:.4px;}
+.sl .tag.you{color:var(--purple-d);background:#EEE7FD;}
+.add-stop{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:11px;width:100%;
+  background:#fff;border:1.5px dashed #CDDAD4;border-radius:15px;padding:13px;color:var(--green-d);
+  font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;transition:.2s;}
+.add-stop:hover{border-color:var(--green);background:#F4FBF8;}
+.prog{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+.pc{border-radius:18px;padding:15px 13px;}
+.pc .v{font-size:26px;font-weight:800;line-height:1;display:flex;align-items:baseline;gap:3px;}
+.pc .l{font-size:10.5px;font-weight:700;letter-spacing:.4px;margin-top:7px;text-transform:uppercase;}
+.pc.points{background:var(--green-bg);} .pc.points .v{color:var(--green-d);} .pc.points .l{color:var(--green-d);}
+.pc.streak{background:var(--amber-bg);} .pc.streak .v{color:var(--amber);} .pc.streak .l{color:#B97C1E;}
+.pc.kcal{background:var(--rose-bg);} .pc.kcal .v{color:var(--rose);} .pc.kcal .l{color:#C2554B;}
+.pc.trips{background:#E7EEFB;} .pc.trips .v{color:#3B6FD4;} .pc.trips .l{color:#3B6FD4;}
+.kcal-note{font-size:10.5px;color:var(--sub);text-align:center;margin-top:8px;opacity:.8;}
+.bump{animation:bump .6s ease;}
+@keyframes bump{0%{transform:scale(1);}40%{transform:scale(1.18);}100%{transform:scale(1);}}
+
+/* bottom nav */
+.tabbar{position:absolute;bottom:0;left:0;right:0;height:76px;background:rgba(255,255,255,.94);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;z-index:40;padding-bottom:8px;}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  cursor:pointer;color:#9AA8A2;font-size:10.5px;font-weight:700;transition:.18s;}
+.tab svg{width:23px;height:23px;}
+.tab.active{color:var(--green);}
+.tab:active{transform:scale(.92);}
+.tab.center{position:relative;}
+.tab.center .fab{width:46px;height:46px;border-radius:15px;background:linear-gradient(135deg,var(--green),var(--green-d));
+  display:grid;place-items:center;box-shadow:0 8px 18px -4px rgba(14,186,130,.6);margin-top:-14px;transition:.2s;}
+.tab.center .fab svg{width:24px;height:24px;}
+.tab.center:hover .fab{transform:translateY(-2px) scale(1.04);}
+.tab.center span{margin-top:2px;}
+
+/* ===== MAP ===== */
+#map{background:#EAF1ED;}
+.m-bar{position:absolute;top:52px;left:16px;right:16px;z-index:30;background:#fff;border-radius:16px;
+  padding:12px 14px;display:flex;align-items:center;gap:11px;box-shadow:0 8px 22px rgba(20,40,30,.12);}
+.m-back{width:30px;height:30px;border-radius:9px;background:#F1F5F3;display:grid;place-items:center;cursor:pointer;flex:none;}
+.m-back svg{width:16px;height:16px;}
+.m-bar .b-title{font-size:13.5px;font-weight:800;}
+.m-bar .b-title span{color:var(--green-d);}
+.m-bar .b-sub{font-size:11.5px;color:var(--sub);font-weight:500;margin-top:1px;}
+.mapwrap{position:absolute;top:0;left:0;right:0;bottom:0;}
+.mapwrap svg{width:100%;height:100%;display:block;}
+.zoom{position:absolute;right:14px;top:138px;display:flex;flex-direction:column;gap:8px;z-index:25;}
+.zb{width:40px;height:40px;border-radius:12px;background:#fff;display:grid;place-items:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);font-size:20px;font-weight:700;color:var(--ink);cursor:pointer;transition:.15s;}
+.zb:active{transform:scale(.9);}
+/* step-free toggle on map */
+.sf-toggle{position:absolute;left:14px;top:138px;z-index:26;background:#fff;border-radius:14px;
+  padding:9px 12px;box-shadow:0 4px 12px rgba(0,0,0,.12);display:flex;align-items:center;gap:9px;cursor:pointer;
+  transition:.2s;border:1.5px solid transparent;}
+.sf-toggle.on{border-color:var(--green);background:#F4FBF8;}
+.sf-toggle .sf-ic{width:22px;height:22px;}
+.sf-toggle .sf-tx{font-size:11.5px;font-weight:800;line-height:1.15;}
+.sf-toggle .sf-tx span{display:block;font-size:9.5px;font-weight:600;color:var(--sub);}
+.sf-switch{width:34px;height:20px;border-radius:20px;background:#D6DEDA;position:relative;transition:.22s;flex:none;}
+.sf-switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.22s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.sf-toggle.on .sf-switch{background:var(--green);}
+.sf-toggle.on .sf-switch::after{transform:translateX(14px);}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 0 0;
+  padding:14px 20px 26px;box-shadow:0 -12px 30px rgba(20,40,30,.14);z-index:35;}
+.grab{width:40px;height:5px;border-radius:3px;background:#E2E8E5;margin:0 auto 14px;}
+.sh-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.sh-top h3{font-size:19px;font-weight:800;}
+.sh-top .sub{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:2px;}
+.eta{background:var(--green-bg);color:var(--green-d);font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;transition:.25s;}
+.choose{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--sub);text-transform:uppercase;margin:16px 0 9px;display:flex;justify-content:space-between;align-items:center;}
+.choose a{font-size:11px;font-weight:800;color:var(--green-d);text-transform:none;letter-spacing:0;cursor:pointer;}
+.routes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+.route{border:1.6px solid var(--line);border-radius:15px;padding:12px 10px;cursor:pointer;transition:.2s;background:#fff;position:relative;}
+.route:hover{border-color:#BEDFCF;}
+.route.sel{border-color:var(--green);background:#F3FBF7;box-shadow:0 6px 16px rgba(14,186,130,.16);}
+.route .rn{font-size:13.5px;font-weight:800;}
+.route .rt{font-size:12px;color:var(--sub);font-weight:600;margin-top:3px;}
+.route .rp{font-size:12.5px;font-weight:800;color:var(--green-d);margin-top:8px;display:flex;align-items:center;gap:3px;}
+.route .rp svg{width:12px;height:12px;}
+.friends{display:flex;align-items:center;gap:10px;margin:15px 0 4px;}
+.av-stack{display:flex;}
+.av{width:30px;height:30px;border-radius:50%;border:2.5px solid #fff;display:grid;place-items:center;
+  font-size:11px;font-weight:800;color:#fff;margin-left:-9px;}
+.av:first-child{margin-left:0;}
+.friends .ft{font-size:12.5px;font-weight:700;}
+.friends .ft span{display:block;font-size:11.5px;color:var(--sub);font-weight:500;}
+.go{margin-top:14px;width:100%;background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;border:none;
+  border-radius:15px;padding:15px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:.2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;}
+.go:hover{transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(14,186,130,.6);}
+.loc-dot{transform-origin:center;}
+.pulse{animation:pulse 2s infinite;transform-origin:center;}
+@keyframes pulse{0%{r:6;opacity:.5;}100%{r:22;opacity:0;}}
+
+/* ===== ROUTE SELECTION (full) ===== */
+#routes-pg{background:#F7FAF8;}
+.rs-scroll{padding:62px 18px 120px;}
+.rs-head{display:flex;align-items:center;gap:12px;margin-bottom:4px;}
+.rs-back{width:34px;height:34px;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;flex:none;}
+.rs-back svg{width:17px;height:17px;}
+.rs-head h2{font-size:19px;font-weight:800;letter-spacing:-.3px;}
+.rs-head .rs-to{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:1px;}
+.filters{display:flex;gap:8px;margin:16px 0 14px;flex-wrap:wrap;}
+.filt{padding:8px 15px;border-radius:20px;font-size:12.5px;font-weight:800;cursor:pointer;transition:.18s;
+  background:#fff;border:1px solid var(--line);color:var(--sub);}
+.filt.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+.rcard{background:#fff;border:1.8px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;
+  cursor:pointer;transition:.2s;position:relative;}
+.rcard:hover{border-color:#BEDFCF;}
+.rcard.sel{border-color:var(--green);background:#F4FBF8;box-shadow:0 10px 24px -10px rgba(14,186,130,.4);}
+.rc-top{display:flex;align-items:center;gap:12px;}
+.rc-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex:none;}
+.rc-ic svg{width:22px;height:22px;}
+.rc-name{font-size:15.5px;font-weight:800;}
+.rc-desc{font-size:12px;color:var(--sub);font-weight:600;margin-top:2px;}
+.rc-rec{margin-left:auto;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--green-d);background:var(--green-bg);padding:5px 10px;border-radius:20px;}
+.rc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:14px;}
+.rc-stat{text-align:left;}
+.rc-stat .sv{font-size:17px;font-weight:800;line-height:1;}
+.rc-stat .sl{font-size:9.5px;font-weight:700;letter-spacing:.3px;color:var(--sub);margin-top:5px;text-transform:uppercase;}
+.rc-stat.pts .sv{color:var(--green-d);}
+.rc-stat.kcal .sv{color:var(--sub);font-size:14px;opacity:.7;}
+.rc-tags{display:flex;gap:6px;margin-top:13px;flex-wrap:wrap;}
+.rc-tag{font-size:10.5px;font-weight:700;color:var(--sub);background:#F1F5F3;padding:4px 10px;border-radius:8px;}
+.rc-tag.sf{color:var(--green-d);background:var(--green-bg);}
+.rs-go{position:absolute;bottom:0;left:0;right:0;padding:14px 18px 22px;background:linear-gradient(180deg,transparent,#F7FAF8 24%);}
+.rs-go button{width:100%;background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;border:none;border-radius:16px;
+  padding:16px;font-family:inherit;font-weight:800;font-size:15.5px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.rs-go button:hover{transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(14,186,130,.6);}
+.rs-go .auto{text-align:center;font-size:11px;color:var(--sub);font-weight:600;margin-top:8px;}
+
+/* ===== ON THE ROUTE base ===== */
+#progress{background:#DDE7E2;color:var(--ink);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ===== CONFIRM ===== */
+#confirm{background:#F7FAF8;}
+.cf{position:absolute;inset:0;display:flex;flex-direction:column;padding:58px 24px 24px;}
+.cf-app{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;}
+.cf-app .b{width:22px;height:22px;border-radius:7px;background:var(--green);display:grid;place-items:center;}
+.cf-app .b svg{width:13px;height:13px;}
+.cf-ring{width:118px;height:118px;border-radius:50%;background:var(--green-bg);display:grid;place-items:center;margin:30px auto 0;
+  animation:pop .55s cubic-bezier(.2,1.4,.4,1) both;}
+.cf-ring .inner{width:84px;height:84px;border-radius:50%;background:var(--green);display:grid;place-items:center;}
+.cf-ring .ck{width:44px;height:44px;}
+.cf-ring .ck path{stroke:#fff;stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:draw .5s .3s forwards;}
+@keyframes draw{to{stroke-dashoffset:0;}}
+@keyframes pop{from{transform:scale(.4);opacity:0;}to{transform:scale(1);opacity:1;}}
+.cf h2{font-size:25px;font-weight:800;text-align:center;margin-top:20px;letter-spacing:-.4px;}
+.cf .cf-sub{font-size:13.5px;color:var(--sub);text-align:center;margin-top:7px;line-height:1.5;}
+.cf-card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-top:22px;}
+.cf-card .cc-top{display:flex;align-items:center;gap:11px;}
+.cf-card .cc-ic{width:38px;height:38px;border-radius:11px;background:var(--green-bg);display:grid;place-items:center;flex:none;}
+.cf-card .cc-ic svg{width:19px;height:19px;}
+.cf-card .cc-n{font-size:14px;font-weight:800;}
+.cf-card .cc-s{font-size:11.5px;color:var(--sub);font-weight:600;margin-top:1px;}
+.cf-card .cc-done{margin-left:auto;font-size:10px;font-weight:800;color:var(--green-d);background:var(--green-bg);padding:5px 11px;border-radius:20px;letter-spacing:.4px;}
+.cf-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;}
+.cf-cell{background:#F6FAF8;border-radius:13px;padding:12px 13px;}
+.cf-cell .cl{font-size:9.5px;font-weight:700;letter-spacing:.4px;color:var(--sub);text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.cf-cell .cv{font-size:19px;font-weight:800;margin-top:6px;}
+.cf-cell.kcal .cv{color:var(--sub);opacity:.65;font-size:16px;}
+.cf-match{background:#EAF7F1;border-radius:13px;padding:11px 14px;margin-top:13px;font-size:12px;font-weight:700;color:var(--green-d);display:flex;align-items:center;gap:8px;line-height:1.4;}
+.cf-actions{margin-top:auto;}
+.cf-claim{width:100%;background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;border:none;border-radius:16px;padding:16px;
+  font-family:inherit;font-weight:800;font-size:15.5px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.cf-claim:hover{transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(14,186,130,.6);}
+.cf-notme{width:100%;background:none;border:none;color:var(--sub);font-family:inherit;font-weight:700;font-size:13px;padding:14px;cursor:pointer;}
+.cf-notme:hover{color:var(--ink);}
+
+/* ===== POINTS EARNED ===== */
+#points{background:linear-gradient(168deg,#0EBA82 0%,#079463 100%);color:#fff;overflow:hidden;}
+.pt{position:absolute;inset:0;display:flex;flex-direction:column;padding:60px 24px 24px;}
+.pt-close{position:absolute;top:54px;right:22px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;cursor:pointer;z-index:5;}
+.pt-close svg{width:16px;height:16px;}
+.pt-earned{text-align:center;margin-top:18px;}
+.pt-earned .lab{font-size:13px;font-weight:800;letter-spacing:1px;opacity:.85;text-transform:uppercase;animation:up .5s .1s both;}
+.pt-big{font-size:88px;font-weight:800;letter-spacing:-3px;line-height:1;margin-top:6px;animation:pop .6s .15s both;}
+.pt-big .u{font-size:28px;font-weight:800;letter-spacing:0;margin-left:4px;}
+.pt-msg{font-size:16px;font-weight:700;margin-top:4px;animation:up .5s .3s both;}
+.pt-card{background:#fff;color:var(--ink);border-radius:20px;padding:18px;margin-top:26px;animation:up .5s .4s both;}
+.pt-card .pcc-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.pt-card .pcc-h .tt{font-size:13.5px;font-weight:800;}
+.pt-card .pcc-h .rt{font-size:11.5px;color:var(--sub);font-weight:700;}
+.pt-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding-bottom:14px;border-bottom:1px solid var(--line);}
+.pt-mini .v{font-size:16px;font-weight:800;}
+.pt-mini .l{font-size:9px;font-weight:700;color:var(--sub);letter-spacing:.3px;margin-top:4px;text-transform:uppercase;}
+.pt-break{margin-top:14px;}
+.pt-bl{font-size:10.5px;font-weight:800;letter-spacing:.5px;color:var(--sub);text-transform:uppercase;margin-bottom:10px;}
+.pt-row{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;margin-bottom:9px;}
+.pt-row .ic{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:13px;flex:none;}
+.pt-row .amt{margin-left:auto;font-weight:800;color:var(--green-d);}
+.pt-streak{background:var(--amber-bg);border-radius:13px;padding:12px 14px;margin-top:6px;}
+.pt-streak .st-t{font-size:12.5px;font-weight:800;color:#B97C1E;display:flex;align-items:center;gap:6px;}
+.pt-streak .st-s{font-size:11px;color:#B97C1E;opacity:.85;font-weight:600;margin-top:2px;}
+.pt-dots{display:flex;gap:6px;margin-top:9px;}
+.pt-dot{width:26px;height:26px;border-radius:8px;background:#fff;display:grid;place-items:center;font-size:12px;color:var(--amber);border:1.5px solid #F2E2C2;}
+.pt-dot.done{background:var(--amber);color:#fff;border-color:var(--amber);}
+.pt-btns{margin-top:auto;}
+.pt-next{width:100%;background:#fff;color:var(--green-d);border:none;border-radius:16px;padding:16px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:.2s;animation:up .5s .5s both;}
+.pt-next:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.18);}
+.pt-share{width:100%;background:none;border:none;color:#fff;font-family:inherit;font-weight:700;font-size:13.5px;padding:13px;cursor:pointer;opacity:.9;}
+@keyframes up{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:none;}}
+.confetti{position:absolute;width:9px;height:14px;top:-20px;border-radius:2px;animation:fall linear forwards;z-index:3;}
+@keyframes fall{to{transform:translateY(900px) rotate(540deg);opacity:.6;}}
+
+/* ===== FRIEND BONUS ===== */
+#friend{background:linear-gradient(168deg,#9A6BF5 0%,#7C3AED 100%);color:#fff;}
+.fr{position:absolute;inset:0;display:flex;flex-direction:column;padding:60px 24px 24px;overflow-y:auto;}
+.fr::-webkit-scrollbar{display:none;}
+.fr-close{position:absolute;top:54px;right:22px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;cursor:pointer;z-index:5;}
+.fr-close svg{width:16px;height:16px;}
+.fr-badge{margin:14px auto 0;background:rgba(255,255,255,.18);padding:6px 14px;border-radius:20px;font-size:11.5px;font-weight:800;letter-spacing:.4px;animation:up .5s .1s both;}
+.fr-avs{display:flex;justify-content:center;margin-top:18px;animation:pop .6s .15s both;}
+.fr-avs .fav{width:64px;height:64px;border-radius:50%;border:3px solid #fff;display:grid;place-items:center;font-size:18px;font-weight:800;color:#fff;margin-left:-14px;}
+.fr-avs .fav:first-child{margin-left:0;}
+.fr-big{text-align:center;font-size:72px;font-weight:800;letter-spacing:-2px;margin-top:14px;line-height:1;animation:pop .6s .25s both;}
+.fr-big .u{font-size:24px;}
+.fr-sub{text-align:center;font-size:15px;font-weight:700;margin-top:2px;opacity:.95;animation:up .5s .35s both;}
+.fr-card{background:#fff;color:var(--ink);border-radius:20px;padding:8px;margin-top:24px;animation:up .5s .45s both;}
+.fr-cl{font-size:10.5px;font-weight:800;letter-spacing:.5px;color:var(--sub);text-transform:uppercase;padding:12px 12px 8px;}
+.fr-p{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:14px;}
+.fr-p .pav{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;flex:none;}
+.fr-p .pn{font-size:13.5px;font-weight:800;}
+.fr-p .ps{font-size:11px;color:var(--sub);font-weight:600;margin-top:1px;}
+.fr-p .pp{margin-left:auto;font-size:12.5px;font-weight:800;color:var(--green-d);background:var(--green-bg);padding:5px 10px;border-radius:20px;}
+.fr-trio{background:#F3EEFE;border-radius:14px;padding:12px 14px;margin:4px 6px 6px;display:flex;align-items:center;gap:10px;}
+.fr-trio .ti{font-size:18px;}
+.fr-trio .tt{font-size:12.5px;font-weight:800;color:var(--purple-d);}
+.fr-trio .ts{font-size:11px;color:var(--purple-d);opacity:.8;font-weight:600;margin-top:1px;}
+.fr-tags{display:flex;gap:8px;padding:4px 12px 12px;flex-wrap:wrap;}
+.fr-tags span{font-size:11px;font-weight:700;color:var(--purple-d);}
+.fr-note{text-align:center;font-size:11.5px;opacity:.85;margin-top:14px;line-height:1.5;padding:0 10px;animation:up .5s .5s both;}
+.fr-btns{margin-top:18px;animation:up .5s .55s both;}
+.fr-high{width:100%;background:#fff;color:var(--purple-d);border:none;border-radius:16px;padding:16px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:.2s;}
+.fr-high:hover{transform:translateY(-2px);box-shadow:0 12px 24px rgba(0,0,0,.2);}
+.fr-cont{width:100%;background:none;border:none;color:#fff;font-family:inherit;font-weight:700;font-size:13.5px;padding:13px;cursor:pointer;}
+
+/* ===== REWARDS ===== */
+#rewards{background:#F7FAF8;}
+.rw-scroll{padding:58px 18px 96px;}
+.rw-head h2{font-size:23px;font-weight:800;letter-spacing:-.4px;}
+.rw-head p{font-size:13px;color:var(--sub);font-weight:600;margin-top:2px;}
+.rw-total{background:linear-gradient(145deg,#16241F,#1E332B);color:#fff;border-radius:22px;padding:20px;margin-top:18px;position:relative;overflow:hidden;}
+.rw-total::after{content:"";position:absolute;right:-30px;bottom:-50px;width:160px;height:160px;border-radius:50%;background:rgba(14,186,130,.18);}
+.rw-total .tt{font-size:11px;font-weight:800;letter-spacing:.6px;opacity:.7;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;}
+.rw-total .tier{background:linear-gradient(135deg,#F4A93B,#E8901C);font-size:10.5px;font-weight:800;padding:5px 11px;border-radius:20px;letter-spacing:.3px;}
+.rw-total .pts{font-size:42px;font-weight:800;letter-spacing:-1px;margin-top:8px;}
+.rw-total .pts .u{font-size:18px;font-weight:700;opacity:.7;margin-left:3px;}
+.rw-bar{height:8px;border-radius:6px;background:rgba(255,255,255,.18);margin-top:14px;overflow:hidden;position:relative;z-index:1;}
+.rw-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#46E6A8,#0EBA82);transition:width .8s ease;}
+.rw-barlab{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;opacity:.8;margin-top:8px;position:relative;z-index:1;}
+.rw-tabs{display:flex;gap:8px;margin:18px 0 16px;}
+.rw-tab{flex:1;padding:10px;border-radius:13px;font-size:12.5px;font-weight:800;text-align:center;cursor:pointer;transition:.18s;background:#fff;border:1px solid var(--line);color:var(--sub);}
+.rw-tab.on{background:var(--ink);color:#fff;border-color:var(--ink);}
+.rw-pane{display:none;}
+.rw-pane.show{display:block;animation:fadeIn .3s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.rw-sub{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--sub);text-transform:uppercase;margin-bottom:12px;}
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px;}
+.badge{text-align:center;}
+.badge .bi{width:100%;aspect-ratio:1;border-radius:18px;display:grid;place-items:center;font-size:24px;margin-bottom:6px;position:relative;}
+.badge .bn{font-size:10px;font-weight:700;line-height:1.2;color:var(--ink);}
+.badge.lock .bi{background:#EEF2F0;}
+.badge.lock .bn{color:#A9B5B0;}
+.badge.lock .bi::after{content:"🔒";font-size:13px;position:absolute;}
+.badge.lock .emoji{opacity:0;}
+.perk{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;transition:.18s;}
+.perk .pic{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:20px;flex:none;}
+.perk .pn{font-size:13.5px;font-weight:800;}
+.perk .pd{font-size:11.5px;color:var(--sub);font-weight:600;margin-top:1px;}
+.perk .pcost{margin-left:auto;font-size:11.5px;font-weight:800;color:var(--green-d);background:var(--green-bg);padding:6px 12px;border-radius:20px;cursor:pointer;transition:.18s;flex:none;}
+.perk .pcost:hover{background:var(--green);color:#fff;}
+.perk .pcost.redeemed{background:#EEF2F0;color:#A9B5B0;cursor:default;}
+.lb{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;}
+.lb-row{display:flex;align-items:center;gap:13px;padding:14px 16px;border-bottom:1px solid var(--line);}
+.lb-row:last-child{border-bottom:none;}
+.lb-row.me{background:#F4FBF8;}
+.lb-rank{font-size:14px;font-weight:800;width:24px;color:var(--sub);}
+.lb-row.me .lb-rank{color:var(--green-d);}
+.lb-av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;flex:none;}
+.lb-n{font-size:13.5px;font-weight:800;flex:1;}
+.lb-pts{font-size:13px;font-weight:800;color:var(--green-d);}
+
+/* ===== PROFILE ===== */
+#profile{background:#F7FAF8;}
+.pf-scroll{padding:58px 20px 96px;}
+.pf-hero{display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:6px;}
+.pf-av{width:84px;height:84px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-d));display:grid;place-items:center;font-size:30px;font-weight:800;color:#fff;box-shadow:0 12px 26px -8px rgba(14,186,130,.6);}
+.pf-name{font-size:21px;font-weight:800;margin-top:13px;}
+.pf-deg{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:2px;}
+.pf-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-top:20px;}
+.pf-st{background:#fff;border:1px solid var(--line);border-radius:16px;padding:15px 10px;text-align:center;}
+.pf-st .v{font-size:21px;font-weight:800;}
+.pf-st .l{font-size:10px;font-weight:700;color:var(--sub);letter-spacing:.3px;margin-top:5px;text-transform:uppercase;}
+.pf-sec{font-size:11px;font-weight:800;letter-spacing:.5px;color:var(--sub);text-transform:uppercase;margin:24px 0 11px;}
+.pf-set{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;}
+.pf-item{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;}
+.pf-item:last-child{border-bottom:none;}
+.pf-item:hover{background:#FAFDFB;}
+.pf-item .ic{font-size:17px;width:24px;text-align:center;flex:none;}
+.pf-item .lbl{font-size:13.5px;font-weight:700;flex:1;}
+.pf-item .lbl span{display:block;font-size:11px;color:var(--sub);font-weight:500;margin-top:1px;}
+.pf-sw{width:42px;height:24px;border-radius:20px;background:#D6DEDA;position:relative;transition:.22s;flex:none;}
+.pf-sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.22s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.pf-sw.on{background:var(--green);}
+.pf-sw.on::after{transform:translateX(18px);}
+.pf-arrow{color:#C2CCC7;font-size:18px;}
+
+/* ===== ADD STOP (modal sheet) ===== */
+.modal{position:absolute;inset:0;z-index:80;display:none;}
+.modal.show{display:block;}
+.modal-bg{position:absolute;inset:0;background:rgba(16,36,30,.5);backdrop-filter:blur(2px);animation:fadeIn .25s;}
+.modal-sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28px 0 0;padding:16px 20px 26px;
+  animation:slideUp .35s cubic-bezier(.2,.9,.2,1);max-height:78%;overflow-y:auto;}
+.modal-sheet::-webkit-scrollbar{display:none;}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.ms-grab{width:40px;height:5px;border-radius:3px;background:#E2E8E5;margin:0 auto 16px;}
+.ms-h{font-size:19px;font-weight:800;}
+.ms-p{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:3px;margin-bottom:16px;}
+.dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dest{display:flex;align-items:center;gap:11px;padding:14px;border-radius:15px;border:1.6px solid var(--line);cursor:pointer;transition:.18s;background:#fff;}
+.dest:hover{border-color:#BEDFCF;}
+.dest.sel{border-color:var(--green);background:#F4FBF8;}
+.dest .di{font-size:20px;}
+.dest .dn{font-size:13px;font-weight:800;}
+.dest .ds{font-size:10.5px;color:var(--sub);font-weight:600;margin-top:1px;}
+.time-row{display:flex;gap:9px;margin-top:16px;flex-wrap:wrap;}
+.time-chip{padding:10px 16px;border-radius:13px;border:1.6px solid var(--line);font-size:13px;font-weight:800;cursor:pointer;transition:.18s;background:#fff;color:var(--sub);}
+.time-chip.sel{border-color:var(--green);background:#F4FBF8;color:var(--ink);}
+.ms-add{width:100%;margin-top:20px;background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;border:none;border-radius:16px;padding:16px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:.2s;}
+.ms-add:hover{transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(14,186,130,.6);}
+.ms-add:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* toast */
+.toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+  font-size:12.5px;font-weight:700;padding:11px 18px;border-radius:14px;z-index:90;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.25);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===== ONBOARDING ===== */
+.ob{position:absolute;inset:0;padding:64px 26px 30px;display:flex;flex-direction:column;}
+.ob.center{justify-content:center;align-items:center;text-align:center;}
+#welcome{background:linear-gradient(165deg,#0EBA82 0%,#079463 100%);color:#fff;}
+.biglogo{width:78px;height:78px;border-radius:24px;background:rgba(255,255,255,.16);display:grid;place-items:center;margin-bottom:24px;animation:pop .6s both;}
+.biglogo svg{width:42px;height:42px;}
+#welcome h2{font-size:30px;font-weight:800;letter-spacing:-.5px;animation:up .5s .15s both;}
+.obsub{font-size:14.5px;opacity:.92;margin-top:10px;line-height:1.55;max-width:280px;font-weight:600;animation:up .5s .25s both;}
+.ob-foot{margin-top:auto;width:100%;display:flex;flex-direction:column;gap:11px;animation:up .5s .35s both;}
+.ob h2{font-size:25px;font-weight:800;letter-spacing:-.4px;}
+.ob .obsub{color:var(--sub);opacity:1;}
+#welcome .obsub{color:#fff;}
+.obtn{width:100%;padding:15px;border-radius:15px;font-family:inherit;font-weight:800;font-size:15px;cursor:pointer;transition:.2s;border:none;}
+.obtn.green{background:#fff;color:var(--green-d);}
+#sync .obtn.green,#perms .obtn.green{background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;}
+.obtn.green:hover{transform:translateY(-2px);box-shadow:0 12px 24px -8px rgba(14,186,130,.5);}
+.obtn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink);}
+.obtn.ghost:hover{border-color:var(--green);color:var(--green-d);}
+.obskip{font-size:13px;font-weight:700;opacity:.85;cursor:pointer;text-align:center;padding:6px;}
+.ob-back{width:34px;height:34px;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;cursor:pointer;font-size:20px;color:var(--ink);margin-bottom:8px;}
+.syncbox{margin-top:22px;background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:30px 20px;text-align:center;transition:.3s;}
+.syncbox.done{border-color:var(--green);background:#F4FBF8;}
+.syncbox .ill{font-size:42px;}
+.syncbox .st{font-size:13.5px;font-weight:700;color:var(--sub);margin-top:12px;}
+.syncbox.done .st{color:var(--green-d);}
+
+/* ----- manual timetable entry ----- */
+.mt-form{margin-top:20px;background:#fff;border:1.5px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:11px;}
+.mt-field{display:flex;flex-direction:column;gap:6px;}
+.mt-field label{font-size:11px;font-weight:800;letter-spacing:.3px;color:var(--sub);text-transform:uppercase;}
+.mt-field input{width:100%;padding:12px 13px;border:1.6px solid var(--line);border-radius:13px;font-family:inherit;font-size:14px;font-weight:600;color:var(--ink);background:#fff;transition:.18s;}
+.mt-field input:focus{outline:none;border-color:var(--green);background:#F4FBF8;}
+.mt-field input::placeholder{color:#A9B6B1;font-weight:500;}
+.mt-row2{display:flex;gap:11px;}
+.mt-row2 .mt-field{flex:1;}
+.mt-addbtn{width:100%;background:var(--green-bg);color:var(--green-d);border:1.5px solid var(--green-soft);border-radius:14px;padding:13px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;transition:.18s;}
+.mt-addbtn:hover{background:var(--green-soft);}
+.mt-addbtn:disabled{opacity:.45;cursor:not-allowed;}
+
+/* custom time pill + stepper picker */
+.mt-timebtn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 13px;border:1.6px solid var(--line);border-radius:13px;font-family:inherit;font-size:14px;font-weight:700;color:var(--ink);background:#fff;cursor:pointer;transition:.18s;}
+.mt-timebtn svg{width:17px;height:17px;color:var(--sub);flex:none;}
+.mt-timebtn:hover{border-color:#BEDFCF;}
+.mt-timebtn.open{border-color:var(--green);background:#F4FBF8;}
+.mt-timebtn.open svg{color:var(--green-d);}
+.mt-picker{max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease, opacity .25s, margin .3s;margin-top:0;}
+.mt-picker.show{max-height:360px;opacity:1;margin-top:11px;}
+.mt-picker-inner{}
+.mt-spin{display:flex;align-items:center;justify-content:center;gap:6px;background:#F4FBF8;border:1.5px solid var(--green-soft);border-radius:16px;padding:14px 10px 10px;}
+.mt-col{display:flex;flex-direction:column;align-items:center;gap:4px;width:78px;}
+.mt-step{width:46px;height:30px;border:none;background:transparent;color:var(--green-d);font-size:18px;font-weight:800;cursor:pointer;border-radius:9px;line-height:1;transition:.15s;display:grid;place-items:center;}
+.mt-step:hover{background:var(--green-soft);}
+.mt-step:active{transform:scale(.92);}
+.mt-val{width:62px;height:48px;display:grid;place-items:center;background:#fff;border:1.5px solid var(--green-soft);border-radius:13px;font-size:24px;font-weight:800;color:var(--ink);letter-spacing:.5px;font-variant-numeric:tabular-nums;}
+.mt-unit{font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--sub);text-transform:uppercase;margin-top:2px;}
+.mt-colon{font-size:24px;font-weight:800;color:var(--green-d);padding-bottom:24px;}
+.mt-quick{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;}
+.mt-qchip{padding:8px 12px;border-radius:11px;border:1.4px solid var(--line);font-size:12.5px;font-weight:800;color:var(--sub);background:#fff;cursor:pointer;transition:.15s;font-variant-numeric:tabular-nums;}
+.mt-qchip:hover{border-color:#BEDFCF;color:var(--ink);}
+.mt-qchip.sel{border-color:var(--green);background:#F4FBF8;color:var(--green-d);}
+.mt-done{width:100%;margin-top:12px;background:var(--green-bg);color:var(--green-d);border:1.5px solid var(--green-soft);border-radius:13px;padding:11px;font-family:inherit;font-weight:800;font-size:13.5px;cursor:pointer;transition:.18s;}
+.mt-done:hover{background:var(--green-soft);}
+.mt-list{margin-top:16px;display:flex;flex-direction:column;gap:9px;}
+.mt-empty{font-size:12.5px;color:var(--sub);font-weight:600;text-align:center;padding:14px;background:#fff;border:1px dashed var(--line);border-radius:14px;}
+.mt-item{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;animation:fadeIn .25s;}
+.mt-item .mt-time{font-size:13px;font-weight:800;width:48px;color:var(--green-d);flex:none;}
+.mt-item .mt-info{flex:1;min-width:0;}
+.mt-item .mt-c{font-size:13.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mt-item .mt-l{font-size:11.5px;color:var(--sub);font-weight:500;margin-top:1px;}
+.mt-item .mt-del{width:26px;height:26px;border-radius:8px;border:none;background:var(--rose-bg);color:var(--rose);font-size:15px;font-weight:800;cursor:pointer;flex:none;line-height:1;}
+.mt-item .mt-del:hover{background:#FBD9D5;}
+.permrow{display:flex;align-items:center;gap:13px;padding:15px 0;border-bottom:1px solid var(--line);}
+.permrow:last-child{border-bottom:none;}
+.permrow .pic{width:40px;height:40px;border-radius:12px;background:var(--green-bg);display:grid;place-items:center;flex:none;}
+.permrow .pic svg{width:20px;height:20px;}
+.permrow .pt2{flex:1;}
+.permrow .pt2 b{font-size:13.5px;font-weight:800;display:block;}
+.permrow .pt2 small{font-size:11.5px;color:var(--sub);font-weight:600;}
+.permnote{font-size:12px;color:var(--sub);margin-top:14px;font-weight:600;}
+
+/* ===== FRIENDS ===== */
+#friends,#addfriend{background:#F7FAF8;}
+.fr-scroll{padding:58px 20px 96px;}
+.fr-head{display:flex;justify-content:space-between;align-items:center;}
+.fr-head h2{font-size:23px;font-weight:800;letter-spacing:-.4px;}
+.fr-head .add{font-size:13.5px;font-weight:800;color:var(--green-d);cursor:pointer;}
+.fr-note2{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:4px;line-height:1.5;}
+.friend-li{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:11px;}
+.friend-li .fa{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;color:#fff;flex:none;}
+.friend-li .fn{flex:1;font-size:14px;font-weight:800;}
+.friend-li .fn small{display:block;font-size:11px;color:var(--sub);font-weight:600;margin-top:1px;}
+.locind{font-size:11.5px;font-weight:800;padding:7px 12px;border-radius:20px;cursor:pointer;transition:.18s;white-space:nowrap;}
+.locind.on{background:var(--green-bg);color:var(--green-d);}
+.locind.off{background:#EEF2F0;color:#9AA8A2;}
+.privacynote{background:#EAF7F1;border-radius:14px;padding:13px 15px;font-size:11.5px;color:var(--green-d);font-weight:600;line-height:1.55;margin-top:16px;}
+.searchbar{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;font-size:13px;color:#9AA8A2;font-weight:600;margin-top:18px;}
+.reqcard{display:flex;align-items:center;gap:13px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-top:13px;}
+.reqcard .fa{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;color:#fff;background:#3B82F6;flex:none;}
+.reqcard .fn{flex:1;font-size:14px;font-weight:800;}
+.reqcard .fn small{display:block;font-size:11px;color:var(--sub);font-weight:600;margin-top:1px;}
+.reqcard .send{background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;border:none;border-radius:11px;padding:9px 14px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer;flex:none;transition:.18s;}
+.reqcard .send.pending{background:#EEF2F0;color:#9AA8A2;}
+
+/* ===== WALK TOGETHER ===== */
+#walktogether{background:#F7FAF8;}
+.wt{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 28px;text-align:center;}
+.wt-avs{display:flex;justify-content:center;margin-bottom:20px;}
+.wt-avs span{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:18px;font-weight:800;color:#fff;border:3px solid #fff;}
+.wt-avs span:not(:first-child){margin-left:-16px;}
+.wt h2{font-size:24px;font-weight:800;letter-spacing:-.4px;}
+.wt p{font-size:14px;color:var(--sub);font-weight:600;margin-top:11px;line-height:1.55;}
+.wt-foot{margin-top:30px;display:flex;flex-direction:column;gap:11px;}
+
+/* ===== NAV (On the route) ===== */
+#nav{background:#DDE7E2;}
+.nav-map{position:absolute;inset:0;overflow:hidden;background:#E3EBE6;}
+.nav-map svg{position:absolute;width:560px;height:760px;left:50%;top:0;transform:translateX(-50%);}
+#navWorld{transition:transform .25s linear;}
+.nav-instr{position:absolute;top:50px;left:14px;right:14px;z-index:20;background:#0E3A2E;color:#fff;border-radius:18px;
+  padding:15px 17px;display:flex;align-items:center;gap:14px;box-shadow:0 12px 28px -8px rgba(0,0,0,.4);}
+.nav-instr .ni-ic{font-size:26px;flex:none;width:34px;text-align:center;}
+.nav-instr .ni-main{font-size:16px;font-weight:800;}
+.nav-instr .ni-sub{font-size:12px;opacity:.8;font-weight:600;margin-top:2px;}
+.nav-instr .ni-dist{margin-left:auto;font-size:15px;font-weight:800;color:#46E6A8;flex:none;}
+.nav-reroute{position:absolute;top:118px;left:14px;right:14px;z-index:19;background:#FCF3E1;color:#B97C1E;border:1px solid #F2E2C2;border-radius:13px;
+  padding:11px 14px;font-size:12px;font-weight:700;line-height:1.4;opacity:0;transform:translateY(-8px);transition:.3s;pointer-events:none;}
+.nav-reroute.show{opacity:1;transform:none;}
+.nav-tag{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:18;background:rgba(14,58,46,.92);color:#fff;font-size:11px;font-weight:800;letter-spacing:.5px;padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:7px;}
+.nav-tag .lv{width:7px;height:7px;border-radius:50%;background:#46E6A8;animation:blink 1.3s infinite;}
+.nav-sheet{position:absolute;left:0;right:0;bottom:0;z-index:20;background:#fff;color:var(--ink);border-radius:24px 24px 0 0;padding:16px 20px 22px;box-shadow:0 -12px 30px rgba(20,40,30,.18);}
+.ns-top{display:flex;justify-content:space-between;align-items:baseline;}
+.ns-eta{font-size:15px;font-weight:800;color:var(--ink);}
+.ns-eta .big{font-size:24px;color:var(--green-d);}
+.ns-by{font-size:12px;color:var(--sub);font-weight:600;}
+.ns-bar{height:7px;border-radius:6px;background:#EDF1EF;margin:13px 0 4px;overflow:hidden;}
+.ns-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#46E6A8,#0EBA82);width:0;transition:width .25s linear;}
+.ns-pct{font-size:11px;font-weight:700;color:var(--sub);text-align:right;}
+.ns-stats{display:flex;background:#F6FAF8;border-radius:14px;overflow:hidden;margin-top:12px;}
+.ns-stat{flex:1;text-align:center;padding:11px 4px;border-right:1px solid #EDF1EF;}
+.ns-stat:last-child{border-right:none;}
+.ns-stat .v{font-size:16px;font-weight:800;color:var(--ink);}
+.ns-stat .l{font-size:9px;font-weight:700;letter-spacing:.3px;color:var(--sub);margin-top:3px;text-transform:uppercase;}
+.ns-reroute{width:100%;margin-top:12px;background:#FCF3E1;color:#B97C1E;border:1px solid #F2E2C2;border-radius:13px;padding:12px;font-family:inherit;font-weight:800;font-size:12.5px;cursor:pointer;transition:.18s;}
+.ns-reroute:hover{background:#FAEAC9;}
+.ns-btns{display:flex;gap:10px;margin-top:11px;}
+.ns-btn{flex:1;padding:14px;border-radius:14px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer;border:none;transition:.18s;}
+.ns-btn.pause{background:#EEF2F0;color:var(--ink);}
+.ns-btn.pause:hover{background:#E4EAE7;}
+.ns-btn.end{background:linear-gradient(135deg,var(--green),#0BA876);color:#fff;}
+.ns-btn.end:hover{transform:translateY(-2px);}
+.ns-cap{text-align:center;font-size:10.5px;color:var(--sub);font-weight:600;margin-top:9px;}
+.nav-you{filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));}
+
+/* manual-mode start overlay on nav */
+.manual-start{position:absolute;inset:0;z-index:30;background:rgba(14,40,30,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;}
+.manual-start.show{display:flex;}
+.manual-start button{background:#fff;color:var(--green-d);border:none;border-radius:50%;width:120px;height:120px;font-family:inherit;font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 16px 36px rgba(0,0,0,.3);transition:.2s;}
+.manual-start button:hover{transform:scale(1.05);}
+
+/* collapsible map sheet */
+.sheet{transition:transform .32s cubic-bezier(.2,.8,.2,1);}
+.sheet.collapsed{transform:translateY(calc(100% - 116px));}
+.sheet .grab{cursor:pointer;}
+
+/* daily cap pill */
+.cap-pill{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;color:var(--green-d);background:var(--green-bg);padding:5px 11px;border-radius:20px;}
+.cap-pill.full{color:#B97C1E;background:var(--amber-bg);}
+.cap-note{font-size:11px;color:var(--sub);font-weight:600;text-align:center;margin-top:8px;}
+
+/* tracking segmented */
+.segmini{display:flex;background:#EEF2F0;border-radius:11px;padding:3px;flex:none;}
+.segmini .s{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:800;color:var(--sub);cursor:pointer;transition:.18s;}
+.segmini .s.on{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08);}
+
+/* calorie-hidden helper */
+.kcal-hidden{visibility:hidden;}
+
+@media(max-width:920px){.side{order:2;position:static;width:392px;max-width:94vw;} }
+/* ===== ADDED: guided-prototype welcome + full-flow overlays (self-contained, scroll-safe) ===== */
+.su-ov{position:fixed;inset:0;z-index:9999;display:none;justify-content:center;align-items:flex-start;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;padding:24px;
+  background:rgba(16,36,31,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);}
+.su-ov.show{display:flex;animation:suFade .22s ease;}
+@keyframes suFade{from{opacity:0}to{opacity:1}}
+@keyframes suPop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.su-coachbox{width:min(440px,92vw);margin:auto;max-height:calc(100vh - 48px);overflow-y:auto;
+  background:var(--card);border-radius:26px;padding:30px 26px 24px;
+  box-shadow:0 30px 80px rgba(16,36,31,.32);text-align:center;animation:suPop .26s ease;}
+.su-clogo{width:62px;height:62px;border-radius:18px;margin:0 auto 16px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--green),var(--green-d));box-shadow:0 12px 26px rgba(14,186,130,.4);}
+.su-clogo svg{width:30px;height:30px;}
+.su-coachbox h2{font-size:23px;font-weight:800;letter-spacing:-.4px;margin-bottom:10px;}
+.su-coachbox .su-sub{font-size:14px;color:var(--sub);line-height:1.55;margin-bottom:20px;}
+.su-list{display:flex;flex-direction:column;gap:13px;text-align:left;margin-bottom:24px;}
+.su-li{display:flex;gap:13px;align-items:flex-start;font-size:13.5px;line-height:1.5;color:var(--ink);}
+.su-li i{flex:none;width:24px;height:24px;border-radius:50%;background:var(--green-bg);color:var(--green-d);
+  font-style:normal;font-weight:800;font-size:12.5px;display:grid;place-items:center;margin-top:1px;}
+.su-cbtns{display:flex;gap:10px;}
+.su-btn{flex:1;border:0;cursor:pointer;font-family:inherit;font-weight:700;font-size:14.5px;
+  padding:15px 14px;border-radius:40px;transition:transform .12s ease,box-shadow .2s ease;}
+.su-btn:active{transform:scale(.97);}
+.su-btn.green{background:linear-gradient(135deg,var(--green),var(--green-d));color:#fff;box-shadow:0 10px 22px rgba(14,186,130,.35);}
+.su-btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);}
+.su-sheet{width:min(1000px,94vw);margin:auto;max-height:calc(100vh - 48px);overflow-y:auto;
+  background:var(--card);border-radius:24px;padding:34px 36px 30px;
+  box-shadow:0 30px 90px rgba(16,36,31,.34);position:relative;animation:suPop .26s ease;}
+.su-x{position:absolute;top:22px;right:22px;width:38px;height:38px;border-radius:12px;border:1.5px solid var(--line);
+  background:#fff;cursor:pointer;display:grid;place-items:center;color:var(--sub);}
+.su-x svg{width:18px;height:18px;}
+.su-sheet h2{font-size:27px;font-weight:800;letter-spacing:-.5px;margin-bottom:8px;padding-right:46px;}
+.su-sheet .su-lead{font-size:14.5px;color:var(--sub);line-height:1.55;max-width:640px;margin-bottom:22px;}
+.su-loop{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--green-bg);
+  border-radius:16px;padding:14px 16px;margin-bottom:26px;}
+.su-lp{display:flex;align-items:center;gap:7px;background:#fff;border-radius:30px;padding:8px 14px;
+  font-size:13px;font-weight:700;color:var(--ink);box-shadow:0 1px 3px rgba(16,36,31,.06);}
+.su-lp svg{width:15px;height:15px;color:var(--green-d);}
+.su-ar{color:var(--green-d);opacity:.6;font-weight:800;}
+.su-map{display:flex;gap:14px;align-items:flex-start;overflow-x:auto;padding-bottom:8px;}
+.su-phase{flex:none;width:230px;}
+.su-ph-h{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.su-ph-n{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--green),var(--green-d));
+  color:#fff;font-weight:800;font-size:13px;display:grid;place-items:center;}
+.su-ph-name{font-weight:800;font-size:15px;}
+.su-nodes{display:flex;flex-direction:column;gap:10px;}
+.su-node{text-align:left;width:100%;background:#fff;border:1.5px solid var(--line);border-radius:16px;
+  padding:14px 15px;cursor:pointer;font-family:inherit;transition:border-color .15s ease,box-shadow .15s ease,transform .12s ease;}
+.su-node:hover{border-color:var(--green);box-shadow:0 8px 20px rgba(14,186,130,.14);transform:translateY(-1px);}
+.su-node:active{transform:scale(.985);}
+.su-code{display:inline-block;background:var(--green-bg);color:var(--green-d);font-weight:800;font-size:11px;
+  padding:3px 9px;border-radius:20px;margin-bottom:8px;}
+.su-node b{display:block;font-size:14.5px;margin-bottom:2px;color:var(--ink);}
+.su-node span{font-size:12.5px;color:var(--sub);}
+.su-repeat{flex:none;width:200px;background:var(--green-bg);border-radius:16px;padding:16px;margin-top:38px;}
+.su-repeat svg{width:20px;height:20px;color:var(--green-d);margin-bottom:8px;}
+.su-repeat b{display:block;font-size:14px;margin-bottom:3px;}
+.su-repeat span{font-size:12.5px;color:var(--sub);line-height:1.45;}
+.su-princ-h{font-size:12px;font-weight:800;letter-spacing:.6px;color:var(--sub);text-transform:uppercase;margin:30px 2px 14px;}
+.su-princ{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+@media(max-width:760px){.su-princ{grid-template-columns:1fr;}}
+.su-pcard{display:flex;gap:12px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:15px;}
+.su-pic{flex:none;width:38px;height:38px;border-radius:11px;background:var(--green-bg);display:grid;place-items:center;}
+.su-pic svg{width:20px;height:20px;color:var(--green-d);}
+.su-pcard b{display:block;font-size:14px;margin-bottom:3px;}
+.su-pcard span{font-size:12.5px;color:var(--sub);line-height:1.45;}
+.su-fab{position:fixed;right:20px;bottom:20px;z-index:9000;display:flex;align-items:center;gap:8px;
+  background:#fff;border:1.5px solid var(--line);border-radius:40px;padding:11px 17px;cursor:pointer;
+  font-family:inherit;font-weight:700;font-size:13.5px;color:var(--ink);
+  box-shadow:0 10px 26px rgba(16,36,31,.16);transition:transform .12s ease;}
+.su-fab:hover{transform:translateY(-1px);}
+.su-fab svg{width:16px;height:16px;color:var(--green-d);}
+/* ===== ADDED: autofit phone to window + keep the top reachable ===== */
+body{justify-content:flex-start;}
+.stage{margin-block:auto;}
+.device{transform-origin:top center;}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- SIDE PANEL -->
+  <aside class="side">
+    <div class="brandrow">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#fff"/></svg></div>
+      <div class="brand">
+        <h1>StepUp Campus</h1>
+        <p>UDE2222 · Interactive prototype</p>
+      </div>
+    </div>
+    <p class="lead">A working click-through. Follow the golden path, or jump to any screen. Routes, points, streaks and rewards all update live.</p>
+    <div class="steps" id="steplist">
+      <div class="step" data-go="welcome"><div class="num">1</div><div><div class="t">Onboarding</div><div class="d">Welcome → sync timetable → permissions</div></div></div>
+      <div class="step" data-go="lock"><div class="num">2</div><div><div class="t">The nudge</div><div class="d">Lock-screen prompt, 12 min before class</div></div></div>
+      <div class="step" data-go="map"><div class="num">3</div><div><div class="t">Choose to move</div><div class="d">Map, step-free toggle &amp; route picker</div></div></div>
+      <div class="step" data-go="routes-pg"><div class="num">4</div><div><div class="t">Compare routes</div><div class="d">Fastest / Active / Sheltered, side by side</div></div></div>
+      <div class="step" data-go="progress"><div class="num">5</div><div><div class="t">On the route</div><div class="d">Live nav · directions · simulate reroute</div></div></div>
+      <div class="step" data-go="confirm"><div class="num">6</div><div><div class="t">Honest confirm</div><div class="d">Claim points or "not me"</div></div></div>
+      <div class="step" data-go="points"><div class="num">7</div><div><div class="t">Earn &amp; streak</div><div class="d">Breakdown · streak · daily cap</div></div></div>
+      <div class="step" data-go="friend"><div class="num">8</div><div><div class="t">Friend bonus</div><div class="d">Reward the shared walk</div></div></div>
+      <div class="step" data-go="rewards"><div class="num">9</div><div><div class="t">Rewards</div><div class="d">Inclusive badges, perks, leaderboard</div></div></div>
+      <div class="step" data-go="friends"><div class="num">+</div><div><div class="t">Friends</div><div class="d">Add friends · per-friend location sharing</div></div></div>
+    </div>
+    <div class="controls">
+      <button class="btn-ghost" onclick="reset()">↺ Restart flow</button>
+      <button class="btn-ghost" onclick="go('home')">🏠 Home</button>
+      <button class="btn-ghost" onclick="suOpenFlow()">⤢ See the full flow</button>
+    </div>
+    <p class="hint">Tip: flip the <b>step-free toggle</b> on the map — the Active route becomes a flat path that earns the <b>same points</b>. The "claim / not me" step is deliberate honesty about detection limits. Great moments to screen-record.</p>
+  </aside>
+
+  <!-- DEVICE -->
+  <div class="device">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="pages">
+
+        <!-- 0a. WELCOME -->
+        <section class="page" id="welcome">
+          <div class="ob center">
+            <div class="biglogo"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#fff"/></svg></div>
+            <h2>StepUp Campus</h2>
+            <p class="obsub">Staying active — without having to think about it. We fold movement into the day you already have.</p>
+            <div class="ob-foot">
+              <button class="obtn green" onclick="go('sync')">Get started</button>
+              <div class="obskip" onclick="go('home')">Skip to app</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 0b. SYNC -->
+        <section class="page" id="sync">
+          <div class="status"><span>9:40</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="ob">
+            <div class="ob-back" onclick="go('welcome')">‹</div>
+            <h2>Connect your timetable</h2>
+            <p class="obsub">StepUp builds your campus day automatically — no planning needed. We already know where you're headed.</p>
+            <div class="syncbox" id="syncbox"><div class="ill">📅</div><div class="st" id="syncSt">Not connected yet</div></div>
+            <div class="ob-foot">
+              <button class="obtn green" id="syncBtn" onclick="doSync()">Sync university timetable</button>
+              <button class="obtn ghost" onclick="go('manual')">Add manually instead</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 0b-ii. MANUAL TIMETABLE -->
+        <section class="page" id="manual">
+          <div class="status"><span>9:40</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="ob">
+            <div class="ob-back" onclick="go('sync')">‹</div>
+            <h2>Add your classes</h2>
+            <p class="obsub">No timetable to sync? Add your classes here and StepUp still builds your campus day automatically.</p>
+            <div class="mt-form">
+              <div class="mt-field">
+                <label>Class / activity</label>
+                <input id="mtName" type="text" placeholder="e.g. UDE2222 · SE Design" oninput="mtCheck()">
+              </div>
+              <div class="mt-row2">
+                <div class="mt-field">
+                  <label>Time</label>
+                  <button type="button" class="mt-timebtn" id="mtTimeBtn" onclick="toggleTimePicker()">
+                    <span id="mtTimeLabel">11:00</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  </button>
+                </div>
+                <div class="mt-field">
+                  <label>Location</label>
+                  <input id="mtLoc" type="text" placeholder="Block E · E-512" oninput="mtCheck()">
+                </div>
+              </div>
+              <div class="mt-picker" id="mtTimePicker">
+                <div class="mt-spin">
+                  <div class="mt-col">
+                    <button type="button" class="mt-step" onclick="adjHour(1)" aria-label="Hour up">⌃</button>
+                    <div class="mt-val" id="mtHourVal">11</div>
+                    <button type="button" class="mt-step" onclick="adjHour(-1)" aria-label="Hour down">⌄</button>
+                    <div class="mt-unit">hour</div>
+                  </div>
+                  <div class="mt-colon">:</div>
+                  <div class="mt-col">
+                    <button type="button" class="mt-step" onclick="adjMin(1)" aria-label="Minute up">⌃</button>
+                    <div class="mt-val" id="mtMinVal">00</div>
+                    <button type="button" class="mt-step" onclick="adjMin(-1)" aria-label="Minute down">⌄</button>
+                    <div class="mt-unit">min</div>
+                  </div>
+                </div>
+                <div class="mt-quick" id="mtQuick">
+                  <div class="mt-qchip" onclick="setTime(8,0)">08:00</div>
+                  <div class="mt-qchip" onclick="setTime(9,0)">09:00</div>
+                  <div class="mt-qchip" onclick="setTime(10,0)">10:00</div>
+                  <div class="mt-qchip" onclick="setTime(11,0)">11:00</div>
+                  <div class="mt-qchip" onclick="setTime(13,0)">13:00</div>
+                  <div class="mt-qchip" onclick="setTime(14,0)">14:00</div>
+                  <div class="mt-qchip" onclick="setTime(15,0)">15:00</div>
+                  <div class="mt-qchip" onclick="setTime(16,0)">16:00</div>
+                </div>
+                <button type="button" class="mt-done" onclick="closeTimePicker()">Done</button>
+              </div>
+              <button class="mt-addbtn" id="mtAddBtn" onclick="addManualClass()" disabled>+ Add class</button>
+            </div>
+            <div class="mt-list" id="mtList">
+              <div class="mt-empty">No classes added yet — add your first above.</div>
+            </div>
+            <div class="ob-foot">
+              <button class="obtn green" id="mtContinue" onclick="finishManual()">Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 0c. PERMISSIONS -->
+        <section class="page" id="perms">
+          <div class="status"><span>9:40</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="ob">
+            <div class="ob-back" onclick="go('sync')">‹</div>
+            <h2>A few permissions</h2>
+            <p class="obsub">You're in control. Each has a clear reason — and friend visibility stays off until you turn it on.</p>
+            <div style="margin-top:8px">
+              <div class="permrow"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="#079463" stroke-width="2"><path d="M12 21s7-6 7-11a7 7 0 10-14 0c0 5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div class="pt2"><b>Location</b><small>To detect when you reach your destination</small></div><div class="pf-sw on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="permrow"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="#079463" stroke-width="2"><path d="M13 3v7h6M4 20l7-7"/><circle cx="6" cy="18" r="2"/></svg></div><div class="pt2"><b>Motion &amp; steps</b><small>To estimate your activity on a route</small></div><div class="pf-sw on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="permrow"><div class="pic"><svg viewBox="0 0 24 24" fill="none" stroke="#079463" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0112 0M17 11l2 2 3-3"/></svg></div><div class="pt2"><b>Friend visibility</b><small>Off by default — you control this entirely</small></div><div class="pf-sw" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+            <div class="permnote">You can change any of these later in Profile → Permissions.</div>
+            <div class="ob-foot">
+              <button class="obtn green" onclick="go('home');toast('Welcome to StepUp, Mark! 🎉')">Continue</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 1. LOCK / NOTIFICATION -->
+        <section class="page" id="lock">
+          <div class="status"><span>10:48</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="lk-top">
+            <div class="lk-lock">🔒</div>
+            <div class="lk-date">Tuesday, 31 May</div>
+            <div class="lk-time">10:48</div>
+          </div>
+          <div class="lk-label">NOTIFICATIONS</div>
+          <div class="notif" onclick="go('map')">
+            <div class="notif-head">
+              <div class="notif-ic"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#fff"/></svg></div>
+              <div class="app">StepUp Campus</div><div class="ago">now</div>
+            </div>
+            <h3>Class starts in 12 minutes</h3>
+            <p>UDE2222 · Block E, Level 5 · Room E-512. Choose a route — Fastest, Active, or Sheltered.</p>
+            <div class="notif-actions">
+              <div class="na primary" onclick="event.stopPropagation();pick('active');go('map')">⚡ Active route</div>
+              <div class="na" onclick="event.stopPropagation();pick('fastest');go('map')">Fastest</div>
+              <div class="na" onclick="event.stopPropagation();pick('sheltered');go('map')">Sheltered</div>
+            </div>
+          </div>
+          <div class="lk-streak">You're on a 3-day streak — Active keeps it going (no pressure 🙂)</div>
+          <div class="lk-dismiss" onclick="go('home')">Dismiss · open StepUp anyway</div>
+          <div class="lk-tap">tap the notification ↑</div>
+          <div class="lk-home"></div>
+        </section>
+
+        <!-- 2. HOME -->
+        <section class="page" id="home">
+          <div class="status"><span>9:41</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="scroll h-scroll">
+            <div class="greet">Good morning, Mark <span class="wave">👋</span></div>
+            <div class="subdate">Tuesday, 31 May 2026</div>
+            <div class="next-card">
+              <div class="nc-top"><span class="nc-kick">Next class</span><span class="nc-chip">in 12 mins</span></div>
+              <div class="nc-title">UDE2222</div>
+              <div class="nc-sub">Software Engineering Design</div>
+              <div class="nc-meta">📍 Block E, Level 5 · Room E-512</div>
+              <button class="nc-btn" onclick="go('map')">Choose your route →</button>
+            </div>
+            <div class="sec-head"><h2>My Campus Day</h2><a onclick="toast('Auto-built from your synced timetable ✓')">Synced ✓</a></div>
+            <div class="sched" id="sched">
+              <div class="sl"><div class="time">09:00</div><div class="dot"></div><div class="info"><div class="c">UDE1111 · Algorithms</div><div class="loc">Block A · A-203</div></div></div>
+              <div class="sl on" onclick="go('map')"><div class="time">11:00</div><div class="dot"></div><div class="info"><div class="c">UDE2222 · SE Design</div><div class="loc">Block E · E-512</div></div><div class="tag">NEXT</div></div>
+              <div class="sl"><div class="time">14:00</div><div class="dot"></div><div class="info"><div class="c">UDE3333 · Databases</div><div class="loc">Block C · C-104</div></div></div>
+            </div>
+            <button class="add-stop" onclick="openAddStop()">＋ Add a stop (gym, library, project room…)</button>
+            <div class="sec-head"><h2>Today's Progress</h2><span class="cap-pill" id="capPill">180 pts left today</span></div>
+            <div class="prog">
+              <div class="pc points"><div class="v" id="pPoints">120</div><div class="l">Points today</div></div>
+              <div class="pc streak"><div class="v" id="pStreak">3 🔥</div><div class="l">Day streak</div></div>
+              <div class="pc trips" id="homeThird"><div class="v" id="pTrips">4</div><div class="l">Active trips</div></div>
+            </div>
+            <div class="cap-note" id="capNote">Daily cap keeps points fair — 300/day from routes.</div>
+          </div>
+          <nav class="tabbar" data-tabs="home"></nav>
+        </section>
+
+        <!-- 3. MAP -->
+        <section class="page" id="map">
+          <div class="status" style="color:#16241F"><span>9:42</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="m-bar">
+            <div class="m-back" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke="#16241F" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></div>
+            <div><div class="b-title">UDE2222 · <span>Block E, Level 5</span></div><div class="b-sub" id="mSub">from Block A · arriving in 9 min</div></div>
+          </div>
+          <div class="mapwrap">
+            <svg viewBox="0 0 392 760" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+                  <path d="M42 0H0V42" fill="none" stroke="#DCE7E1" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="392" height="760" fill="#E9F0EC"/>
+              <rect width="392" height="760" fill="url(#grid)"/>
+              <!-- green space for step-free route -->
+              <path id="parkPatch" d="M120 470 Q160 430 220 450 T330 500 L320 560 Q230 600 150 560 Z" fill="#CFEEDC" opacity="0"/>
+              <g font-family="Plus Jakarta Sans" font-weight="800" font-size="11" fill="#8C9A93">
+                <rect x="44" y="150" width="86" height="74" rx="12" fill="#DCE6E0"/><text x="55" y="180">BLOCK A</text>
+                <rect x="206" y="200" width="92" height="82" rx="12" fill="#DCE6E0"/><text x="218" y="232">BLOCK C</text>
+                <rect x="312" y="150" width="56" height="60" rx="12" fill="#DCE6E0"/><text x="324" y="184">LIB</text>
+                <rect x="48" y="330" width="92" height="78" rx="12" fill="#DCE6E0"/><text x="60" y="364">BLOCK B</text>
+                <rect x="236" y="372" width="120" height="118" rx="14" fill="#BFE8D4"/><text x="250" y="402" fill="#0A8A60">BLOCK E</text>
+              </g>
+              <polyline id="routePath" fill="none" stroke="#0EBA82" stroke-width="5" stroke-linecap="round"
+                stroke-linejoin="round" stroke-dasharray="9 11" points=""/>
+              <g transform="translate(87,187)">
+                <circle class="pulse" r="6" fill="#3B82F6"/>
+                <circle r="9" fill="#fff"/><circle r="6" fill="#3B82F6"/>
+              </g>
+              <g transform="translate(296,431)">
+                <circle r="15" fill="#0EBA82"/><text x="-7" y="5" font-size="15">🏁</text>
+              </g>
+              <g id="friendAY"><circle cx="208" cy="300" r="13" fill="#8B5CF6"/><text x="200" y="304" font-size="10" font-weight="800" fill="#fff">AY</text></g>
+              <g id="friendMN"><circle cx="252" cy="345" r="13" fill="#F59E0B"/><text x="244" y="349" font-size="10" font-weight="800" fill="#fff">MN</text></g>
+            </svg>
+          </div>
+          <!-- step-free toggle -->
+          <div class="sf-toggle" id="sfToggle" onclick="toggleStepFree()">
+            <svg class="sf-ic" viewBox="0 0 24 24" fill="none" stroke="#0EBA82" stroke-width="2"><circle cx="12" cy="4" r="2"/><path d="M10 8l-2 6 4 2 2 6M14 11l4 1"/></svg>
+            <div class="sf-tx">Step-free<span id="sfState">off</span></div>
+            <div class="sf-switch"></div>
+          </div>
+          <div class="zoom"><div class="zb" onclick="toast('Zoomed in')">+</div><div class="zb" onclick="toast('Zoomed out')">−</div></div>
+          <div class="sheet" id="mapSheet">
+            <div class="grab" onclick="toggleSheet()"></div>
+            <div class="sh-top">
+              <div><h3>Block E, Level 5</h3><div class="sub">UDE2222 · Class in 12 mins</div></div>
+              <div class="eta" id="etaChip">ETA 6 min</div>
+            </div>
+            <div class="choose"><span>Choose your route</span><a onclick="go('routes-pg')">Compare all →</a></div>
+            <div class="routes" id="routesMini">
+              <div class="route" data-r="fastest" onclick="pick('fastest')">
+                <div class="rn">Fastest</div><div class="rt" id="mFastT">4 min</div>
+                <div class="rp"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#079463"/></svg>10 pts</div>
+              </div>
+              <div class="route sel" data-r="active" onclick="pick('active')">
+                <div class="rn">Active</div><div class="rt" id="mActT">6 min</div>
+                <div class="rp"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#079463"/></svg>60 pts</div>
+              </div>
+              <div class="route" data-r="sheltered" onclick="pick('sheltered')">
+                <div class="rn">Sheltered</div><div class="rt" id="mShelT">7 min</div>
+                <div class="rp"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#079463"/></svg>30 pts</div>
+              </div>
+            </div>
+            <div class="friends" id="mapFriends" onclick="go('walktogether')" style="cursor:pointer">
+              <div class="av-stack"><div class="av" style="background:#8B5CF6">AY</div><div class="av" style="background:#F59E0B">MN</div></div>
+              <div class="ft">Aisha &amp; Marc heading to Block E<span id="inviteSub">Tap to invite — walk together for +30 bonus</span></div>
+            </div>
+            <button class="go" id="goBtn" onclick="startRoute()">Start Active Route →</button>
+          </div>
+        </section>
+
+        <!-- 4. ROUTE SELECTION -->
+        <section class="page" id="routes-pg">
+          <div class="status"><span>9:43</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="scroll rs-scroll">
+            <div class="rs-head">
+              <div class="rs-back" onclick="go('map')"><svg viewBox="0 0 24 24" fill="none" stroke="#16241F" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></div>
+              <div><h2>Choose your route</h2><div class="rs-to">to UDE2222 · Block E, Level 5</div></div>
+            </div>
+            <div class="filters" id="filters">
+              <div class="filt on" data-f="all" onclick="filterRoutes('all')">All</div>
+              <div class="filt" data-f="stairs" onclick="filterRoutes('stairs')">Stairs</div>
+              <div class="filt" data-f="indoor" onclick="filterRoutes('indoor')">Indoor</div>
+              <div class="filt" data-f="friend" onclick="filterRoutes('friend')">With friend</div>
+            </div>
+            <div id="rcards"></div>
+          </div>
+          <div class="rs-go">
+            <button onclick="startRoute()"><span id="rsGoTxt">Start Active Route</span> →</button>
+            <div class="auto">Auto-tracking starts automatically — no button to press</div>
+          </div>
+        </section>
+
+        <!-- 5. ON THE ROUTE (navigation) -->
+        <section class="page" id="progress">
+          <div class="nav-map" id="nav">
+            <svg viewBox="0 0 560 760" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <pattern id="ngrid" width="46" height="46" patternUnits="userSpaceOnUse"><path d="M46 0H0V46" fill="none" stroke="#D3E0D8" stroke-width="1"/></pattern>
+              </defs>
+              <g id="navWorld">
+                <rect x="-200" y="-200" width="1000" height="1200" fill="#E6EEE9"/>
+                <rect x="-200" y="-200" width="1000" height="1200" fill="url(#ngrid)"/>
+                <g font-family="Plus Jakarta Sans" font-weight="800" font-size="13" fill="#9AA8A2">
+                  <rect x="70" y="250" width="120" height="92" rx="14" fill="#D7E3DC"/><text x="86" y="300">BLOCK A</text>
+                  <rect x="300" y="280" width="130" height="100" rx="14" fill="#D7E3DC"/><text x="318" y="335">BLOCK C</text>
+                  <rect x="80" y="470" width="120" height="96" rx="14" fill="#D7E3DC"/><text x="96" y="522">BLOCK B</text>
+                  <rect x="330" y="500" width="160" height="150" rx="16" fill="#BFE8D4"/><text x="350" y="540" fill="#0A8A60">BLOCK E</text>
+                  <path id="navParkPatch" d="M170 600 Q230 560 320 580 T470 640 L450 700 Q330 740 210 700 Z" fill="#CFEEDC" opacity="0"/>
+                </g>
+                <path id="navRoute" fill="none" stroke="#0EBA82" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" d=""/>
+                <path id="navRouteCovered" fill="none" stroke="#0EBA82" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0 9999" d="" opacity=".35"/>
+                <g id="navFriendAY"><circle cx="300" cy="430" r="16" fill="#8B5CF6"/><text x="290" y="435" font-size="12" font-weight="800" fill="#fff">AY</text></g>
+                <g id="navFriendMN"><circle cx="360" cy="470" r="16" fill="#F59E0B"/><text x="350" y="475" font-size="12" font-weight="800" fill="#fff">MN</text></g>
+                <g transform="translate(450,640)"><circle r="18" fill="#0EBA82"/><text x="-8" y="6" font-size="17">🏁</text></g>
+                <g class="nav-you" id="navYou" transform="translate(130,300)">
+                  <circle r="22" fill="#3B82F6" opacity=".18"/>
+                  <circle r="11" fill="#fff"/><circle r="7" fill="#3B82F6"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <div class="status" style="color:#16241F;z-index:21"><span>9:46</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="nav-instr">
+            <div class="ni-ic" id="niIc">↑</div>
+            <div><div class="ni-main" id="niMain">Head toward Block C</div><div class="ni-sub" id="niSub">along the outdoor path</div></div>
+            <div class="ni-dist" id="niDist">120 m</div>
+          </div>
+          <div class="nav-reroute" id="navReroute">🔄 Route changed — recalculating. You'll still earn points for the active distance you cover.</div>
+          <div class="manual-start" id="manualStart"><button onclick="beginManual()">Start<br>route</button></div>
+          <div class="nav-sheet">
+            <div class="ns-top">
+              <div class="ns-eta">Arriving in <span class="big" id="pgEta">4:12</span></div>
+              <div class="ns-by" id="pgBy">reach Block E by 9:51</div>
+            </div>
+            <div class="ns-bar"><i id="pgBar"></i></div>
+            <div class="ns-pct"><span id="pgPct">0%</span> complete</div>
+            <div class="ns-stats">
+              <div class="ns-stat"><div class="v" id="pgSteps">0</div><div class="l">Steps</div></div>
+              <div class="ns-stat"><div class="v" id="pgElapsed">0:00</div><div class="l">Elapsed</div></div>
+              <div class="ns-stat"><div class="v" id="pgFloors">0</div><div class="l">Floors</div></div>
+              <div class="ns-stat kcal-cell"><div class="v" id="pgKcal">0</div><div class="l">Kcal</div></div>
+            </div>
+            <button class="ns-reroute" onclick="triggerReroute()">⟲ Simulate mid-route change (demo)</button>
+            <div class="ns-btns">
+              <button class="ns-btn pause" id="pgPauseBtn" onclick="togglePause()">⏸ Pause</button>
+              <button class="ns-btn end" onclick="endRouteEarly()">End route</button>
+            </div>
+            <div class="ns-cap">Tracking is automatic — these controls are optional</div>
+          </div>
+        </section>
+
+        <!-- 6. CONFIRM -->
+        <section class="page" id="confirm">
+          <div class="status"><span>9:51</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="cf">
+            <div class="cf-app"><span class="b"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#fff"/></svg></span> StepUp Campus</div>
+            <div class="cf-ring"><div class="inner"><svg class="ck" viewBox="0 0 64 64"><path d="M16 34l12 12 22-26"/></svg></div></div>
+            <h2>Route completed!</h2>
+            <div class="cf-sub">StepUp detected you reached <b>Block E, Level 5</b>. We can't see exactly which indoor path you took — so just confirm it was you.</div>
+            <div class="cf-card">
+              <div class="cc-top">
+                <div class="cc-ic"><svg viewBox="0 0 24 24"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#079463"/></svg></div>
+                <div><div class="cc-n" id="cfName">Active Route</div><div class="cc-s">Block A → Block E, Level 5</div></div>
+                <div class="cc-done">DONE</div>
+              </div>
+              <div class="cf-grid">
+                <div class="cf-cell"><div class="cl">👟 Steps</div><div class="cv" id="cfSteps">528</div></div>
+                <div class="cf-cell"><div class="cl">⏱ Time</div><div class="cv" id="cfTime">6:03</div></div>
+                <div class="cf-cell"><div class="cl" id="cfFloorsL">🪜 Floors</div><div class="cv" id="cfFloors">+4</div></div>
+                <div class="cf-cell kcal kcal-cell"><div class="cl">🔥 Kcal est.</div><div class="cv" id="cfKcal">28</div></div>
+              </div>
+              <div class="cf-match">✓ Movement data matches the Active route — points ready to unlock.</div>
+            </div>
+            <div class="cf-actions">
+              <button class="cf-claim" onclick="claimPoints()">Claim my points →</button>
+              <button class="cf-notme" onclick="notMe()">Not me — discard this route</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. POINTS EARNED -->
+        <section class="page" id="points">
+          <div class="status" style="color:#fff"><span>9:52</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="pt-close" onclick="afterPoints()"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+          <div class="pt">
+            <div class="pt-earned">
+              <div class="lab">You earned</div>
+              <div class="pt-big">+<span id="ptPts">60</span><span class="u">pts</span></div>
+              <div class="pt-msg" id="ptMsg">Way to go, Mark! 🎉</div>
+            </div>
+            <div class="pt-card">
+              <div class="pcc-h"><div class="tt" id="ptRoute">Active Route · UDE2222</div><div class="rt">just now</div></div>
+              <div class="pt-mini">
+                <div><div class="v" id="ptSteps">528</div><div class="l">Steps</div></div>
+                <div><div class="v" id="ptTime">6:03</div><div class="l">Time</div></div>
+                <div><div class="v" id="ptFloors">+4</div><div class="l">Floors</div></div>
+                <div class="kcal-cell"><div class="v" id="ptKcal">28</div><div class="l">Kcal</div></div>
+              </div>
+              <div class="pt-break">
+                <div class="pt-bl">Points breakdown</div>
+                <div id="ptBreak"></div>
+                <div class="pt-streak">
+                  <div class="st-t">🔥 <span id="ptStreakN">3</span>-day streak</div>
+                  <div class="st-s" id="ptStreakS">2 more active days for a +40 bonus</div>
+                  <div class="pt-dots" id="ptDots"></div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-btns">
+              <button class="pt-next" id="ptNextBtn" onclick="afterPoints()">See my rewards →</button>
+              <button class="pt-share" onclick="toast('Shared to #StepUpSquad 🎉')">Share with friends</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. FRIEND BONUS -->
+        <section class="page" id="friend">
+          <div class="status" style="color:#fff"><span>9:53</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="fr-close" onclick="go('rewards')"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+          <div class="fr">
+            <div class="fr-badge">🤝 FRIEND BONUS UNLOCKED</div>
+            <div class="fr-avs">
+              <div class="fav" style="background:#0EBA82">KM</div>
+              <div class="fav" style="background:#8B5CF6">AY</div>
+              <div class="fav" style="background:#F59E0B">MN</div>
+            </div>
+            <div class="fr-big">+30<span class="u"> pts</span></div>
+            <div class="fr-sub">You and 2 friends walked an active stretch together!</div>
+            <div class="fr-card">
+              <div class="fr-cl">Trip participants</div>
+              <div class="fr-p"><div class="pav" style="background:#0EBA82">KM</div><div><div class="pn">You (Mark)</div><div class="ps">Active route · 6:03</div></div><div class="pp">+60 pts</div></div>
+              <div class="fr-p"><div class="pav" style="background:#8B5CF6">AY</div><div><div class="pn">Aisha Yusof</div><div class="ps">Active route · 6:11</div></div><div class="pp">+60 pts</div></div>
+              <div class="fr-p"><div class="pav" style="background:#F59E0B">MN</div><div><div class="pn">Marc Ng</div><div class="ps">Active route · 5:58</div></div><div class="pp">+60 pts</div></div>
+              <div class="fr-trio"><span class="ti">🎉</span><div><div class="tt">Trio bonus applied</div><div class="ts">+30 pts each for moving together</div></div></div>
+              <div class="fr-tags"><span>#StepUpSquad</span><span>#BlockE</span><span>#ActiveRoute</span></div>
+            </div>
+            <div class="fr-note">The bonus rewards walking together — not arriving at the same room. Aisha split to E-512 and Marc to E-604, and all three still earned it.</div>
+            <div class="fr-btns">
+              <button class="fr-high" onclick="toast('High-five sent! 🙌')">Send a high-five 🙌</button>
+              <button class="fr-cont" onclick="go('rewards')">Continue to rewards →</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. REWARDS -->
+        <section class="page" id="rewards">
+          <div class="status"><span>9:54</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="scroll rw-scroll">
+            <div class="rw-head"><h2>Rewards</h2><p>Your StepUp wins this semester</p></div>
+            <div class="rw-total">
+              <div class="tt"><span>Total points</span><span class="tier">★ GOLD</span></div>
+              <div class="pts"><span id="rwTotal">2,840</span><span class="u">pts</span></div>
+              <div class="rw-bar"><i id="rwBar" style="width:94%"></i></div>
+              <div class="rw-barlab"><span id="rwToNext">160 pts to PLATINUM</span><span id="rwFrac">2840 / 3000</span></div>
+            </div>
+            <div class="rw-tabs">
+              <div class="rw-tab on" data-p="ach" onclick="rwTab('ach')">Achievements</div>
+              <div class="rw-tab" data-p="perks" onclick="rwTab('perks')">Rewards</div>
+              <div class="rw-tab" data-p="lb" onclick="rwTab('lb')">Leaderboard</div>
+            </div>
+
+            <div class="rw-pane show" id="pane-ach">
+              <div class="rw-sub">Recent badges</div>
+              <div class="badges">
+                <div class="badge"><div class="bi" style="background:#FEF0DA"><span class="emoji">⚡</span></div><div class="bn">5-day streak</div></div>
+                <div class="badge"><div class="bi" style="background:#FDE9E7"><span class="emoji">🪜</span></div><div class="bn">Stair Master</div></div>
+                <div class="badge"><div class="bi" style="background:#E9E2FC"><span class="emoji">🤝</span></div><div class="bn">Team Player</div></div>
+                <div class="badge"><div class="bi" style="background:#E2F4EC"><span class="emoji">🌿</span></div><div class="bn">Trailblazer</div></div>
+                <div class="badge"><div class="bi" style="background:#E2F4EC"><span class="emoji">📏</span></div><div class="bn">Distance</div></div>
+                <div class="badge"><div class="bi" style="background:#DDEBFF"><span class="emoji">🌧️</span></div><div class="bn">Rain Walker</div></div>
+                <div class="badge lock"><div class="bi"><span class="emoji">🏆</span></div><div class="bn">1000 pts</div></div>
+                <div class="badge lock"><div class="bi"><span class="emoji">👟</span></div><div class="bn">10k steps</div></div>
+              </div>
+              <div class="rw-sub">Step-free &amp; stairs both count — nobody's left out.</div>
+            </div>
+
+            <div class="rw-pane" id="pane-perks">
+              <div class="rw-sub">Redeemable perks · non-monetary</div>
+              <div class="perk"><div class="pic" style="background:#DDEBFF">🏸</div><div><div class="pn">Sports facility priority</div><div class="pd">Book courts 24h early</div></div><div class="pcost" onclick="redeem(this,500)">500 pts</div></div>
+              <div class="perk"><div class="pic" style="background:#E2F4EC">🖨️</div><div><div class="pn">100 printing credits</div><div class="pd">Library print quota top-up</div></div><div class="pcost" onclick="redeem(this,300)">300 pts</div></div>
+              <div class="perk"><div class="pic" style="background:#E9E2FC">📚</div><div><div class="pn">Library room booking</div><div class="pd">Priority study-room slot</div></div><div class="pcost" onclick="redeem(this,400)">400 pts</div></div>
+              <div class="perk"><div class="pic" style="background:#FEF0DA">🎟️</div><div><div class="pn">Campus event pass</div><div class="pd">Early access to fests &amp; talks</div></div><div class="pcost" onclick="redeem(this,600)">600 pts</div></div>
+            </div>
+
+            <div class="rw-pane" id="pane-lb">
+              <div class="rw-sub">Friends-only leaderboard · this week</div>
+              <div class="lb" id="lb"></div>
+            </div>
+          </div>
+          <nav class="tabbar" data-tabs="rewards"></nav>
+        </section>
+
+        <!-- 10. PROFILE -->
+        <section class="page" id="profile">
+          <div class="status"><span>9:55</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="scroll pf-scroll">
+            <div class="pf-hero">
+              <div class="pf-av">KM</div>
+              <div class="pf-name">Mark M.</div>
+              <div class="pf-deg">Computer Science · Year 2</div>
+            </div>
+            <div class="pf-stats">
+              <div class="pf-st"><div class="v" id="pfPts">2,840</div><div class="l">Earned</div></div>
+              <div class="pf-st"><div class="v" id="pfStreak">3</div><div class="l">Day streak</div></div>
+              <div class="pf-st"><div class="v">12</div><div class="l">Badges</div></div>
+            </div>
+            <div class="pf-sec">Preferences</div>
+            <div class="pf-set">
+              <div class="pf-item"><span class="ic">♿</span><div class="lbl">Always step-free routes<span>Default to flat, stair-free paths — same points</span></div><div class="pf-sw" id="pfSwSF" onclick="profileStepFree(this)"></div></div>
+              <div class="pf-item"><span class="ic">🔥</span><div class="lbl">Show calorie estimate<span>Off by default — we lead with movement, not numbers</span></div><div class="pf-sw" id="pfSwKcal" onclick="toggleKcal(this)"></div></div>
+              <div class="pf-item"><span class="ic">🎯</span><div class="lbl">Tracking mode<span>Auto detects arrival · Manual gives a Start/End button</span></div><div class="segmini"><div class="s on" id="trkAuto" onclick="setTrack('auto')">Auto</div><div class="s" id="trkManual" onclick="setTrack('manual')">Manual</div></div></div>
+            </div>
+            <div class="pf-sec">Social</div>
+            <div class="pf-set">
+              <div class="pf-item" onclick="go('friends')"><span class="ic">👥</span><div class="lbl">Friends<span>Aisha, Marc · manage who you share with</span></div><span class="pf-arrow">›</span></div>
+              <div class="pf-item"><span class="ic">📡</span><div class="lbl">Friend visibility<span>Off by default — opt in per friend</span></div><div class="pf-sw on" id="pfSwFr" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+            <div class="pf-sec">Permissions</div>
+            <div class="pf-set">
+              <div class="pf-item" onclick="toast('Used only to detect arrival')"><span class="ic">📍</span><div class="lbl">Location<span>Detect when you arrive</span></div><span class="pf-arrow">›</span></div>
+              <div class="pf-item" onclick="toast('Used to estimate activity')"><span class="ic">🏃</span><div class="lbl">Motion &amp; steps<span>Estimate your movement</span></div><span class="pf-arrow">›</span></div>
+              <div class="pf-item" onclick="go('perms')"><span class="ic">🔒</span><div class="lbl">Manage permissions<span>Location, motion, friend visibility</span></div><span class="pf-arrow">›</span></div>
+            </div>
+          </div>
+          <nav class="tabbar" data-tabs="profile"></nav>
+        </section>
+
+        <!-- 11. FRIENDS -->
+        <section class="page" id="friends">
+          <div class="status"><span>9:55</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="scroll fr-scroll">
+            <div class="fr-head"><h2>Friends</h2><span class="add" onclick="go('addfriend')">＋ Add</span></div>
+            <div class="fr-note2">Mutual opt-in. You each control your own location sharing — independently.</div>
+            <div id="friendList">
+              <div class="friend-li"><div class="fa" style="background:#8B5CF6">AY</div><div class="fn">Aisha Yusof<small>Same faculty · 2 shared routes</small></div><span class="locind on" onclick="toggleLoc(this)">📍 Sharing</span></div>
+              <div class="friend-li"><div class="fa" style="background:#F59E0B">MN</div><div class="fn">Marc Ng<small>Block E regular</small></div><span class="locind off" onclick="toggleLoc(this)">📍 Off</span></div>
+            </div>
+            <div class="privacynote">🔒 Location sharing is per-friend and only you can change yours. A friend can't see you unless you've both accepted <b>and</b> you've turned sharing on.</div>
+          </div>
+          <nav class="tabbar" data-tabs="profile"></nav>
+        </section>
+
+        <!-- 11b. ADD FRIEND -->
+        <section class="page" id="addfriend">
+          <div class="status"><span>9:55</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="scroll fr-scroll">
+            <div class="rs-head"><div class="rs-back" onclick="go('friends')"><svg viewBox="0 0 24 24" fill="none" stroke="#16241F" stroke-width="2.4"><path d="M15 5l-7 7 7 7"/></svg></div><div><h2 style="font-size:19px">Add a friend</h2></div></div>
+            <div class="searchbar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9AA8A2" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg> Search by name or student ID</div>
+            <div class="reqcard"><div class="fa">JL</div><div class="fn">Jay Lim<small>Suggested · same CCA</small></div><button class="send" id="reqBtn" onclick="sendReq()">Send request</button></div>
+            <div class="reqcard"><div class="fa" style="background:#0EBA82">PT</div><div class="fn">Priya T.<small>Suggested · Block E regular</small></div><button class="send" onclick="sendReq2(this)">Send request</button></div>
+            <div class="privacynote">They must accept before either of you can see the other. Nothing is shared until you both opt in — and location stays off until you switch it on.</div>
+          </div>
+        </section>
+
+        <!-- 11c. WALK TOGETHER (invite) -->
+        <section class="page" id="walktogether">
+          <div class="status"><span>9:44</span><span class="dots"><b><i></i><i></i><i></i><i></i></b> Wi-Fi 100%</span></div>
+          <div class="wt">
+            <div class="wt-avs"><span style="background:#0EBA82">KM</span><span style="background:#8B5CF6">AY</span><span style="background:#F59E0B">MN</span></div>
+            <h2>Walk together?</h2>
+            <p>Aisha and Marc are both heading toward Block E. Walk the Active route together and you'll each earn a shared bonus — even if you split off to different rooms.</p>
+            <div class="wt-foot">
+              <button class="obtn green" onclick="armFriendBonus()">Yes, invite them →</button>
+              <button class="obtn ghost" onclick="go('map')">Not now</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ADD STOP MODAL -->
+      <div class="modal" id="addStopModal">
+        <div class="modal-bg" onclick="closeAddStop()"></div>
+        <div class="modal-sheet">
+          <div class="ms-grab"></div>
+          <div class="ms-h">Add a stop</div>
+          <div class="ms-p">Pick a campus destination — it drops into My Campus Day, and StepUp will suggest an active way to get there.</div>
+          <div class="dest-grid" id="destGrid">
+            <div class="dest" data-d="Gym" data-loc="Sports Hall · L1" onclick="pickDest(this)"><span class="di">🏋️</span><div><div class="dn">Gym</div><div class="ds">Sports Hall · L1</div></div></div>
+            <div class="dest" data-d="Library" data-loc="LIB · L3" onclick="pickDest(this)"><span class="di">📚</span><div><div class="dn">Library</div><div class="ds">LIB · L3</div></div></div>
+            <div class="dest" data-d="Project room" data-loc="Block C · C-210" onclick="pickDest(this)"><span class="di">💡</span><div><div class="dn">Project room</div><div class="ds">Block C · C-210</div></div></div>
+            <div class="dest" data-d="CCA venue" data-loc="Block B · Studio" onclick="pickDest(this)"><span class="di">🎭</span><div><div class="dn">CCA venue</div><div class="ds">Block B · Studio</div></div></div>
+          </div>
+          <div class="ms-p" style="margin:18px 0 0">What time?</div>
+          <div class="time-row" id="timeRow">
+            <div class="time-chip" onclick="pickTime(this,'12:30')">12:30</div>
+            <div class="time-chip" onclick="pickTime(this,'15:00')">15:00</div>
+            <div class="time-chip" onclick="pickTime(this,'16:30')">16:30</div>
+            <div class="time-chip" onclick="pickTime(this,'18:00')">18:00</div>
+          </div>
+          <button class="ms-add" id="msAddBtn" onclick="confirmAddStop()" disabled>Add to my day</button>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADDED: guided-prototype welcome overlay ===== -->
+<div class="su-ov show" id="suCoach">
+  <div class="su-coachbox">
+    <div class="su-clogo"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div>
+    <h2>Welcome — this is a guided prototype</h2>
+    <p class="su-sub">StepUp Campus turns trips you're already making around campus into short active routes. Here's how to explore it:</p>
+    <div class="su-list">
+      <div class="su-li"><i>1</i><div>Walk the journey using the numbered <b>steps on the left</b> — or just tap through the screens yourself.</div></div>
+      <div class="su-li"><i>2</i><div>Everything is live: flip the <b>Step-free</b> toggle, pick different routes, and watch your points update for real.</div></div>
+      <div class="su-li"><i>3</i><div>Open <b>"See the full flow"</b> any time for the big-picture map of how the whole app works.</div></div>
+    </div>
+    <div class="su-cbtns">
+      <button class="su-btn ghost" onclick="suOpenFlow()">See the full flow</button>
+      <button class="su-btn green" onclick="suCloseCoach()">Start walkthrough</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADDED: full-flow overview overlay ===== -->
+<div class="su-ov" id="suFlow">
+  <div class="su-sheet" id="suFlowSheet"></div>
+</div>
+
+<!-- ===== full-flow open button now lives in the side panel controls (was a floating button that overlapped the phone) ===== -->
+
+<script>
+/* ============ STATE ============ */
+const DAILY_CAP = 300;
+const BASE = {points:120, streak:3, kcal:28, total:2840, balance:2840, trips:4};
+let stats = {...BASE};
+let stepFree = false;
+let kcalOn = false;            // calories OFF by default (per concept doc)
+let track = 'auto';            // auto | manual
+let selected = 'active';
+const friendsAvailable = true;
+let friendBonusArmed = true;   // friends already coordinating; invite confirms it
+let earnedFriendBonus = false;
+let progTimer = null, paused = false;
+
+/* route data — active has a stair variant and a step-free variant */
+const ROUTES = {
+  fastest:   {name:'Fastest',  eta:4, pts:10, kcal:12, steps:320, floors:0, time:'3:48',
+              desc:'Lift + shortest corridor', icon:'🚶', col:'#9AA8A2', colbg:'#EEF2F0',
+              tags:['Lift','Indoor','Quick'], indoor:true,
+              points:'87,187 87,250 230,250 296,431',
+              nav:'M130,300 L300,330 L410,560 L450,640',
+              instr:[['↑','Shortest indoor corridor','through Block A','90 m'],['→','Cut through Block C','covered the whole way','60 m'],['🛗','Lift to Level 5','quick arrival','20 m']]},
+  active:    {name:'Active',   eta:6, pts:60, kcal:28, steps:520, floors:4, time:'6:03',
+              desc:'Stairs + outdoor path', icon:'⚡', col:'#0EBA82', colbg:'#E2F4EC',
+              tags:['Stairs','Outdoor','+4 floors'], indoor:false,
+              points:'87,187 87,300 208,300 252,345 296,431',
+              nav:'M130,300 L200,360 L360,400 L360,560 L450,640',
+              instr:[['↑','Head toward Block C','along the outdoor path','120 m'],['→','Turn right at the plaza','past the green','80 m'],['🪜','Take the stairs to Level 5','4 floors · almost there','40 m']]},
+  activeSF:  {name:'Active',   eta:7, pts:60, kcal:26, steps:560, floors:0, time:'6:40',
+              desc:'Flat park-connector path', icon:'🌿', col:'#0EBA82', colbg:'#E2F4EC',
+              tags:['Step-free','Scenic','Same points'], indoor:false,
+              points:'87,187 87,360 150,470 240,500 296,431',
+              nav:'M130,300 L150,430 L260,560 L380,600 L450,640',
+              instr:[['↑','Head to the park connector','flat, step-free','140 m'],['→','Follow the connector','scenic flat path','90 m'],['🛗','Lift up to Level 5','step-free arrival','30 m']]},
+  sheltered: {name:'Sheltered',eta:7, pts:30, kcal:20, steps:440, floors:0, time:'7:10',
+              desc:'Covered walkways only', icon:'☔', col:'#3B82F6', colbg:'#DDEBFF',
+              tags:['Covered','Indoor','Rain-friendly'], indoor:true,
+              points:'87,187 150,187 150,360 236,420 296,431',
+              nav:'M130,300 L210,300 L210,560 L380,620 L450,640',
+              instr:[['↑','Covered walkway','rain-friendly','110 m'],['→','Stay under cover','past Block B','70 m'],['🛗','Lift to Level 5','sheltered all the way','30 m']]},
+  detour:    {nav:'M130,300 L200,360 L300,470 L420,520 L360,600 L450,640',
+              instr:[['🔄','Detour — path blocked','rerouting around the works','100 m'],['→','New active stretch','still earns points','70 m'],['🪜','Stairs to Level 5','almost there','40 m']]}
+};
+function activeKey(){ return stepFree ? 'activeSF' : 'active'; }
+function curRoute(){ return selected==='active' ? ROUTES[activeKey()] : ROUTES[selected]; }
+
+/* ============ NAVIGATION ============ */
+const TABS = [
+  {id:'home',  label:'Home',   svg:'<path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z"/>', fill:true},
+  {id:'map',   label:'Map',    svg:'<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/>', fill:false},
+  {id:'__center',label:'StepUp', svg:'<path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z" fill="#fff"/>', center:true},
+  {id:'rewards',label:'Rewards', svg:'<path d="M8 21h8M12 17v4M6 4h12v5a6 6 0 01-12 0V4zM6 6H3v2a3 3 0 003 3M18 6h3v2a3 3 0 01-3 3"/>', fill:false},
+  {id:'profile',label:'Profile', svg:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>', fill:false}
+];
+function buildTabs(){
+  document.querySelectorAll('.tabbar').forEach(bar=>{
+    const active = bar.dataset.tabs;
+    bar.innerHTML = TABS.map(t=>{
+      if(t.center){
+        return `<div class="tab center" onclick="go('map')"><div class="fab"><svg viewBox="0 0 24 24">${t.svg}</svg></div><span>${t.label}</span></div>`;
+      }
+      const stroke = t.fill ? 'fill="currentColor"' : 'fill="none" stroke="currentColor" stroke-width="2"';
+      return `<div class="tab ${t.id===active?'active':''}" onclick="go('${t.id}')"><svg viewBox="0 0 24 24" ${stroke}>${t.svg}</svg>${t.label}</div>`;
+    }).join('');
+  });
+}
+function go(id){
+  document.getElementById('addStopModal').classList.remove('show');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+  const el=document.getElementById(id); el.classList.add('show');
+  const sc=el.querySelector('.scroll'); if(sc) sc.scrollTop=0;
+  document.querySelectorAll('#steplist .step').forEach(s=>s.classList.toggle('active', s.dataset.go===id));
+  if(id==='map'){ drawRoute(false); const sh=document.getElementById('mapSheet'); if(sh) sh.classList.remove('collapsed'); }
+  if(id==='routes-pg') renderRouteCards();
+  if(id==='progress') startNav(); else stopNav();
+  if(id==='rewards') syncRewards();
+  if(id==='manual'){ closeTimePicker(); syncTimeUI(); renderManualList(); }
+}
+document.querySelectorAll('#steplist .step').forEach(s=>s.addEventListener('click',()=>go(s.dataset.go)));
+
+/* ============ TOAST ============ */
+let toastT=null;
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1900);
+}
+
+/* ============ STEP-FREE TOGGLE ============ */
+function toggleStepFree(){
+  stepFree=!stepFree;
+  const tg=document.getElementById('sfToggle');
+  tg.classList.toggle('on',stepFree);
+  document.getElementById('sfState').textContent=stepFree?'on':'off';
+  document.getElementById('parkPatch').style.opacity=stepFree?'1':'0';
+  document.getElementById('pfSwSF').classList.toggle('on',stepFree);
+  if(selected==='active') drawRoute(true);
+  syncMiniRoutes();
+  if(document.getElementById('routes-pg').classList.contains('show')) renderRouteCards();
+  toast(stepFree ? 'Step-free on — Active is now a flat path, same 60 pts' : 'Step-free off — stairs route restored');
+}
+function profileStepFree(el){
+  el.classList.toggle('on');
+  stepFree=el.classList.contains('on');
+  document.getElementById('sfToggle').classList.toggle('on',stepFree);
+  document.getElementById('sfState').textContent=stepFree?'on':'off';
+  if(selected==='active') drawRoute(false);
+  syncMiniRoutes();
+}
+
+/* ============ ROUTE PICK (map mini) ============ */
+function pick(r){
+  selected=r;
+  const R=curRoute();
+  document.querySelectorAll('#routesMini .route').forEach(el=>el.classList.toggle('sel', el.dataset.r===r));
+  document.getElementById('etaChip').textContent='ETA '+R.eta+' min';
+  document.getElementById('mSub').textContent='from Block A · arriving in '+(R.eta+3)+' min';
+  document.getElementById('goBtn').innerHTML='Start '+R.name+' Route →';
+  const showFriends = (r==='active' && friendsAvailable);
+  document.getElementById('mapFriends').style.opacity = showFriends?1:.4;
+  document.getElementById('friendAY').style.opacity = showFriends?1:.3;
+  document.getElementById('friendMN').style.opacity = showFriends?1:.3;
+  drawRoute(true);
+}
+function syncMiniRoutes(){
+  const a=curRoute();
+  document.getElementById('mFastT').textContent=ROUTES.fastest.eta+' min';
+  document.getElementById('mActT').textContent=ROUTES[activeKey()].eta+' min';
+  document.getElementById('mShelT').textContent=ROUTES.sheltered.eta+' min';
+  if(selected==='active'){
+    document.getElementById('etaChip').textContent='ETA '+a.eta+' min';
+    document.getElementById('goBtn').innerHTML='Start '+a.name+' Route →';
+  }
+}
+function drawRoute(animate){
+  const R=curRoute();
+  const path=document.getElementById('routePath');
+  path.setAttribute('points', R.points);
+  path.setAttribute('stroke', selected==='sheltered'?'#3B82F6':'#0EBA82');
+  if(animate){
+    const len = path.getTotalLength ? path.getTotalLength() : 600;
+    path.style.transition='none';
+    path.style.strokeDasharray=len; path.style.strokeDashoffset=len;
+    path.getBoundingClientRect();
+    path.style.transition='stroke-dashoffset .7s ease';
+    path.style.strokeDashoffset=0;
+    setTimeout(()=>{path.style.transition='none';path.style.strokeDasharray='9 11';path.style.strokeDashoffset=0;},760);
+  }
+}
+
+/* ============ ROUTE SELECTION (full) ============ */
+let routeFilter='all';
+function renderRouteCards(){
+  const order=['fastest','active','sheltered'];
+  const wrap=document.getElementById('rcards'); wrap.innerHTML='';
+  order.forEach(key=>{
+    const R = key==='active' ? ROUTES[activeKey()] : ROUTES[key];
+    // filter
+    if(routeFilter==='stairs' && !(key==='active' && !stepFree)) return;
+    if(routeFilter==='indoor' && !R.indoor) return;
+    if(routeFilter==='friend' && !(key==='active' && friendsAvailable)) return;
+    const rec = key==='active' ? '<div class="rc-rec">RECOMMENDED</div>' : '';
+    const tags = R.tags.map(t=>`<div class="rc-tag ${t==='Step-free'?'sf':''}">${t}</div>`).join('');
+    const card=document.createElement('div');
+    card.className='rcard'+(selected===key?' sel':'');
+    card.dataset.r=key;
+    card.onclick=()=>selectRouteCard(key);
+    card.innerHTML=`
+      <div class="rc-top">
+        <div class="rc-ic" style="background:${R.colbg}"><span style="font-size:20px">${R.icon}</span></div>
+        <div><div class="rc-name">${R.name} Route</div><div class="rc-desc">${R.desc}</div></div>
+        ${rec}
+      </div>
+      <div class="rc-stats">
+        <div class="rc-stat"><div class="sv">${R.eta} min</div><div class="sl">Time</div></div>
+        <div class="rc-stat"><div class="sv">${R.steps}</div><div class="sl">Steps</div></div>
+        <div class="rc-stat kcal kcal-cell"><div class="sv">${R.kcal}</div><div class="sl">Kcal</div></div>
+        <div class="rc-stat pts"><div class="sv">${R.pts}</div><div class="sl">Points</div></div>
+      </div>
+      <div class="rc-tags">${tags}</div>`;
+    wrap.appendChild(card);
+  });
+  if(!wrap.children.length){
+    wrap.innerHTML='<div style="text-align:center;color:#9AA8A2;font-weight:700;padding:40px 0;font-size:13px">No routes match this filter.</div>';
+  }
+  document.getElementById('rsGoTxt').textContent='Start '+curRoute().name+' Route';
+  applyKcal();
+}
+function selectRouteCard(key){
+  selected=key;
+  document.querySelectorAll('#rcards .rcard').forEach(c=>c.classList.toggle('sel',c.dataset.r===key));
+  document.getElementById('rsGoTxt').textContent='Start '+curRoute().name+' Route';
+  pick(key); // keep map mini in sync
+}
+function filterRoutes(f){
+  routeFilter=f;
+  document.querySelectorAll('#filters .filt').forEach(el=>el.classList.toggle('on',el.dataset.f===f));
+  renderRouteCards();
+}
+
+/* ============ ON THE ROUTE — navigation engine ============ */
+let navP=0, navRerouted=false, navPath=null, navLen=0;
+const NAV_CX=280, NAV_CY=300;   // where the "you" dot stays parked in viewBox
+
+function setNavRoute(d){
+  navPath.setAttribute('d', d);
+  navLen = navPath.getTotalLength ? navPath.getTotalLength() : 600;
+}
+function startNav(){
+  stopNav(); paused=false; navP=0; navRerouted=false;
+  const R=curRoute();
+  document.getElementById('pgPauseBtn').innerHTML='⏸ Pause';
+  document.getElementById('navReroute').classList.remove('show');
+  document.getElementById('navParkPatch').style.opacity = stepFree?'1':'0';
+  // friends visible on the nav map only for active+armed
+  const showF = (selected==='active' && friendBonusArmed);
+  document.getElementById('navFriendAY').style.opacity=showF?1:.25;
+  document.getElementById('navFriendMN').style.opacity=showF?1:.25;
+  navPath=document.getElementById('navRoute');
+  setNavRoute(R.nav);
+  setInstr(R.instr,0);
+  document.getElementById('pgBar').style.width='0%';
+  document.getElementById('pgPct').textContent='0%';
+  navStep(); // place dot at start
+
+  // manual mode shows a Start button overlay; auto begins immediately
+  const ms=document.getElementById('manualStart');
+  if(track==='manual'){ ms.classList.add('show'); }
+  else { ms.classList.remove('show'); runNav(); }
+}
+function beginManual(){ document.getElementById('manualStart').classList.remove('show'); runNav(); }
+function runNav(){
+  const tick=55, total=4400, inc=tick/total*100;
+  progTimer=setInterval(()=>{
+    if(paused) return;
+    navP=Math.min(100, navP+inc);
+    navStep();
+    if(navP>=100){ stopNav(); prepConfirm(); setTimeout(()=>{ if(document.getElementById('progress').classList.contains('show')) go('confirm'); },600); }
+  },tick);
+}
+function navStep(){
+  const R=curRoute();
+  const pct=Math.round(navP);
+  // move dot along path
+  const pt = navPath.getPointAtLength ? navPath.getPointAtLength(navLen*navP/100) : {x:NAV_CX,y:NAV_CY};
+  document.getElementById('navYou').setAttribute('transform',`translate(${pt.x},${pt.y})`);
+  // pan world so dot stays parked (Google-Maps feel)
+  document.getElementById('navWorld').setAttribute('transform',`translate(${NAV_CX-pt.x},${NAV_CY-pt.y})`);
+  // stats
+  document.getElementById('pgBar').style.width=pct+'%';
+  document.getElementById('pgPct').textContent=pct+'%';
+  const sec=Math.round(navP/100*(R.eta*60));
+  document.getElementById('pgElapsed').textContent=fmt(sec);
+  document.getElementById('pgSteps').textContent=Math.round(R.steps*navP/100);
+  document.getElementById('pgFloors').textContent=R.floors? '+'+Math.round(R.floors*navP/100):'0';
+  document.getElementById('pgKcal').textContent=Math.round(R.kcal*navP/100);
+  document.getElementById('pgEta').textContent=fmt(Math.max(0,R.eta*60-sec));
+  // instruction banner by threshold
+  const set = navRerouted ? ROUTES.detour.instr : R.instr;
+  const idx = navP<40?0 : navP<75?1 : 2;
+  setInstr(set, idx);
+}
+function setInstr(set,idx){
+  const s=set[idx]||set[set.length-1];
+  document.getElementById('niIc').textContent=s[0];
+  document.getElementById('niMain').textContent=s[1];
+  document.getElementById('niSub').textContent=s[2];
+  document.getElementById('niDist').textContent=s[3];
+}
+function triggerReroute(){
+  if(navRerouted){ toast('Already on the new route'); return; }
+  navRerouted=true;
+  setNavRoute(ROUTES.detour.nav);
+  document.getElementById('navReroute').classList.add('show');
+  setTimeout(()=>document.getElementById('navReroute').classList.remove('show'),3200);
+  toast('Route changed — points recalculated for active distance');
+}
+function stopNav(){ if(progTimer){clearInterval(progTimer);progTimer=null;} }
+function togglePause(){
+  paused=!paused;
+  document.getElementById('pgPauseBtn').innerHTML = paused?'▶ Resume':'⏸ Pause';
+  toast(paused?'Paused — tracking holds':'Resumed');
+}
+function endRouteEarly(){
+  stopNav();
+  toast('Ended — points for the active distance you covered');
+  prepConfirm(); go('confirm');
+}
+function fmt(s){ const m=Math.floor(s/60), ss=String(s%60).padStart(2,'0'); return m+':'+ss; }
+
+/* ============ MAP SHEET (collapsible) ============ */
+function toggleSheet(){ document.getElementById('mapSheet').classList.toggle('collapsed'); }
+
+/* ============ CONFIRM ============ */
+function prepConfirm(){
+  const R=curRoute();
+  document.getElementById('cfName').textContent=R.name+' Route';
+  document.getElementById('cfSteps').textContent=R.steps;
+  document.getElementById('cfTime').textContent=R.time;
+  document.getElementById('cfKcal').textContent=R.kcal;
+  if(R.floors>0){ document.getElementById('cfFloorsL').innerHTML='🪜 Floors'; document.getElementById('cfFloors').textContent='+'+R.floors; }
+  else { document.getElementById('cfFloorsL').innerHTML='🌿 Path'; document.getElementById('cfFloors').textContent='Flat'; }
+  applyKcal();
+}
+function notMe(){ toast('Route discarded — no points added'); go('home'); }
+
+/* ============ CLAIM → POINTS (with daily cap) ============ */
+function claimPoints(){
+  const R=curRoute();
+  earnedFriendBonus = (selected==='active' && friendBonusArmed);
+  let gross = R.pts + (earnedFriendBonus?30:0);
+
+  // enforce daily cap (route points only)
+  const remaining = Math.max(0, DAILY_CAP - stats.points);
+  const awarded = Math.min(gross, remaining);
+  const capped = awarded < gross;
+
+  stats.points += awarded; stats.total += awarded; stats.balance += awarded; stats.trips += 1;
+  stats.streak += 1; stats.kcal += R.kcal;
+
+  document.getElementById('ptPts').textContent=awarded;
+  document.getElementById('ptRoute').textContent=R.name+' Route · UDE2222';
+  document.getElementById('ptSteps').textContent=R.steps;
+  document.getElementById('ptTime').textContent=R.time;
+  document.getElementById('ptFloors').textContent=R.floors?('+'+R.floors):'Flat';
+  document.getElementById('ptKcal').textContent=R.kcal;
+
+  // breakdown rows
+  const rows=[];
+  rows.push(row('⚡','#E2F4EC',R.name+' route bonus','+'+(R.pts-(R.floors||stepFree?10:0))));
+  if(R.floors>0) rows.push(row('🪜','#FDE9E7','Used stairs ('+R.floors+' floors)','+10'));
+  else if(stepFree) rows.push(row('🌿','#E2F4EC','Step-free path (same reward)','+10'));
+  if(earnedFriendBonus) rows.push(row('🤝','#EEE7FD','Shared walk with friends','+30'));
+  if(capped) rows.push(row('🛡️','#FCF3E1','Daily cap reached — extra held','−'+(gross-awarded)));
+  document.getElementById('ptBreak').innerHTML=rows.join('');
+
+  document.getElementById('ptMsg').textContent = capped
+    ? "You've hit today's cap — nice work, Mark!"
+    : 'Way to go, Mark! 🎉';
+
+  // streak
+  document.getElementById('ptStreakN').textContent=stats.streak;
+  const need=Math.max(0,5-stats.streak);
+  document.getElementById('ptStreakS').textContent = need>0 ? need+' more active days for a +40 bonus' : 'Streak bonus unlocked! +40';
+  let dots='';
+  for(let d=1; d<=5; d++) dots+=`<div class="pt-dot ${d<=stats.streak?'done':''}">${d<=stats.streak?'✓':''}</div>`;
+  document.getElementById('ptDots').innerHTML=dots;
+
+  document.getElementById('ptNextBtn').textContent = earnedFriendBonus ? 'See friend bonus →' : 'See my rewards →';
+  go('points'); confetti(); applyKcal();
+}
+function row(ic,bg,label,amt){
+  return `<div class="pt-row"><span class="ic" style="background:${bg}">${ic}</span>${label}<span class="amt">${amt}</span></div>`;
+}
+function afterPoints(){
+  syncHome();
+  go(earnedFriendBonus ? 'friend' : 'rewards');
+}
+function confetti(){
+  const host=document.getElementById('points');
+  const cols=['#fff','#46E6A8','#FCD34D','#F2786E','#8B5CF6'];
+  for(let i=0;i<26;i++){
+    const c=document.createElement('div'); c.className='confetti';
+    c.style.left=Math.random()*100+'%';
+    c.style.background=cols[i%cols.length];
+    c.style.animationDuration=(1.6+Math.random()*1.4)+'s';
+    c.style.animationDelay=(Math.random()*.4)+'s';
+    host.appendChild(c);
+    setTimeout(()=>c.remove(),3400);
+  }
+}
+
+/* ============ SYNC HOME / REWARDS / PROFILE ============ */
+function syncHome(){
+  const p=document.getElementById('pPoints'), s=document.getElementById('pStreak'), t=document.getElementById('pTrips');
+  p.textContent=stats.points; s.textContent=stats.streak+' 🔥'; t.textContent=stats.trips;
+  [p,s,t].forEach(el=>{el.classList.remove('bump');void el.offsetWidth;el.classList.add('bump');});
+  // daily cap pill
+  const left=Math.max(0,DAILY_CAP-stats.points);
+  const pill=document.getElementById('capPill');
+  if(left>0){ pill.textContent=left+' pts left today'; pill.classList.remove('full'); document.getElementById('capNote').textContent='Daily cap keeps points fair — 300/day from routes.'; }
+  else { pill.textContent='🛡️ Daily cap reached'; pill.classList.add('full'); document.getElementById('capNote').textContent="You've earned today's max from routes — streak & friends still count tomorrow."; }
+}
+function syncRewards(){
+  const fmtN=n=>n.toLocaleString();
+  document.getElementById('rwTotal').textContent=fmtN(stats.total);
+  document.getElementById('pfPts').textContent=fmtN(stats.total);
+  document.getElementById('pfStreak').textContent=stats.streak;
+  const toNext=Math.max(0,3000-stats.total);
+  document.getElementById('rwBar').style.width=Math.min(100,stats.total/3000*100)+'%';
+  document.getElementById('rwToNext').textContent= toNext>0 ? toNext+' pts to PLATINUM' : 'PLATINUM reached!';
+  document.getElementById('rwFrac').textContent=stats.total+' / 3000';
+  renderLeaderboard();
+}
+
+/* Friends are fixed; "me" reflects live points so rank updates after any deduction */
+const LB_FRIENDS=[
+  {n:'Aisha Yusof', av:'AY', col:'#8B5CF6', pts:3120},
+  {n:'Marc Ng',     av:'MN', col:'#F59E0B', pts:2610},
+  {n:'Jia Tan',     av:'JT', col:'#3B82F6', pts:2240},
+  {n:'Ravi Kumar',  av:'RK', col:'#F2786E', pts:1980}
+];
+function renderLeaderboard(){
+  const lb=document.getElementById('lb'); if(!lb) return;
+  const fmtN=n=>n.toLocaleString();
+  const rows=[...LB_FRIENDS, {n:'You (Mark)', av:'KM', col:'#0EBA82', pts:stats.total, me:true}];
+  // sort by points desc; on a tie, "me" sits just below the friend
+  rows.sort((a,b)=> b.pts-a.pts || ((a.me?1:0)-(b.me?1:0)) );
+  lb.innerHTML=rows.map((r,i)=>
+    `<div class="lb-row${r.me?' me':''}">`+
+      `<div class="lb-rank">${i+1}</div>`+
+      `<div class="lb-av" style="background:${r.col}">${r.av}</div>`+
+      `<div class="lb-n">${r.n}</div>`+
+      `<div class="lb-pts"${r.me?' id="lbMe"':''}>${fmtN(r.pts)}</div>`+
+    `</div>`
+  ).join('');
+}
+
+/* ============ CALORIES (global toggle, off by default) ============ */
+function applyKcal(){
+  document.querySelectorAll('.kcal-cell').forEach(el=>el.classList.toggle('kcal-hidden', !kcalOn));
+}
+function toggleKcal(el){
+  kcalOn=!kcalOn; el.classList.toggle('on',kcalOn); applyKcal();
+  if(document.getElementById('routes-pg').classList.contains('show')) renderRouteCards();
+  toast(kcalOn?'Calorie estimates shown':'Calories hidden — we lead with movement');
+}
+
+/* ============ TRACKING MODE ============ */
+function setTrack(m){
+  track=m;
+  document.getElementById('trkAuto').classList.toggle('on',m==='auto');
+  document.getElementById('trkManual').classList.toggle('on',m==='manual');
+  const cap=document.querySelector('#routes-pg .rs-go .auto');
+  if(cap) cap.textContent = m==='auto' ? 'Auto-tracking starts automatically — no button to press' : "Manual mode: you'll tap Start, then End";
+  toast('Tracking mode: '+m);
+}
+
+/* ============ FRIEND INVITE ============ */
+function armFriendBonus(){
+  friendBonusArmed=true;
+  document.getElementById('inviteSub').textContent='Invited ✓ — you\'ll both earn the +30';
+  toast('Invited — Aisha & Marc notified, bonus armed');
+  go('map');
+}
+function toggleLoc(el){
+  const on=el.classList.contains('on');
+  el.classList.toggle('on',!on); el.classList.toggle('off',on);
+  el.textContent = on ? '📍 Off' : '📍 Sharing';
+  toast(on?'Stopped sharing location':'Now sharing location with this friend');
+}
+function sendReq(){ const b=document.getElementById('reqBtn'); b.textContent='Request sent'; b.classList.add('pending'); b.onclick=null; toast('Request sent — they must accept first'); }
+function sendReq2(b){ b.textContent='Request sent'; b.classList.add('pending'); b.onclick=null; toast('Request sent — they must accept first'); }
+
+/* ============ ONBOARDING ============ */
+function doSync(){
+  const box=document.getElementById('syncbox'), st=document.getElementById('syncSt'), btn=document.getElementById('syncBtn');
+  st.textContent='Connecting…';
+  setTimeout(()=>{
+    box.classList.add('done'); st.textContent='✓ Synced — 3 classes today imported';
+    btn.textContent='Continue'; btn.onclick=()=>go('perms');
+  },900);
+}
+
+/* ----- manual timetable entry ----- */
+let manualClasses=[];
+let mtHour=11, mtMin=0, mtPickerOpen=false;
+
+function pad2(n){ return String(n).padStart(2,'0'); }
+function mtTimeStr(){ return pad2(mtHour)+':'+pad2(mtMin); }
+function syncTimeUI(){
+  document.getElementById('mtHourVal').textContent=pad2(mtHour);
+  document.getElementById('mtMinVal').textContent=pad2(mtMin);
+  document.getElementById('mtTimeLabel').textContent=mtTimeStr();
+  const cur=mtTimeStr();
+  document.querySelectorAll('#mtQuick .mt-qchip').forEach(c=>c.classList.toggle('sel', c.textContent===cur));
+}
+function adjHour(d){ mtHour=(mtHour+d+24)%24; syncTimeUI(); }
+function adjMin(d){
+  let m=mtMin+d*5;
+  if(m>=60){ m=0; adjHour(1); }
+  else if(m<0){ m=55; adjHour(-1); }
+  mtMin=m; syncTimeUI();
+}
+function setTime(h,m){ mtHour=h; mtMin=m; syncTimeUI(); }
+function toggleTimePicker(){ mtPickerOpen?closeTimePicker():openTimePicker(); }
+function openTimePicker(){
+  mtPickerOpen=true;
+  document.getElementById('mtTimePicker').classList.add('show');
+  document.getElementById('mtTimeBtn').classList.add('open');
+  syncTimeUI();
+}
+function closeTimePicker(){
+  mtPickerOpen=false;
+  document.getElementById('mtTimePicker').classList.remove('show');
+  document.getElementById('mtTimeBtn').classList.remove('open');
+}
+function mtCheck(){
+  const name=document.getElementById('mtName').value.trim();
+  document.getElementById('mtAddBtn').disabled = !name;
+}
+function addManualClass(){
+  const nameEl=document.getElementById('mtName'), locEl=document.getElementById('mtLoc');
+  const name=nameEl.value.trim(), time=mtTimeStr(), loc=locEl.value.trim();
+  if(!name) return;
+  manualClasses.push({name, time, loc});
+  manualClasses.sort((a,b)=> a.time.localeCompare(b.time));
+  nameEl.value=''; locEl.value=''; mtHour=11; mtMin=0; syncTimeUI(); closeTimePicker();
+  mtCheck(); renderManualList();
+  toast(name+' added');
+}
+function removeManualClass(i){
+  manualClasses.splice(i,1);
+  renderManualList();
+}
+function renderManualList(){
+  const list=document.getElementById('mtList');
+  const cont=document.getElementById('mtContinue');
+  if(!manualClasses.length){
+    list.innerHTML='<div class="mt-empty">No classes added yet — add your first above.</div>';
+    cont.textContent='Skip for now';
+    return;
+  }
+  cont.textContent='Continue ('+manualClasses.length+' added)';
+  list.innerHTML=manualClasses.map((c,i)=>
+    `<div class="mt-item">`+
+      `<div class="mt-time">${c.time}</div>`+
+      `<div class="mt-info"><div class="mt-c">${c.name}</div>`+
+        (c.loc?`<div class="mt-l">${c.loc}</div>`:'')+
+      `</div>`+
+      `<button class="mt-del" onclick="removeManualClass(${i})">×</button>`+
+    `</div>`
+  ).join('');
+}
+function finishManual(){
+  if(manualClasses.length){
+    // rebuild My Campus Day from the manually-added classes
+    const sched=document.getElementById('sched');
+    sched.innerHTML = manualClasses.map((c,i)=>{
+      const isNext = i===0;
+      const onclick = isNext ? ` onclick="go('map')"` : '';
+      const tag = isNext ? '<div class="tag">NEXT</div>' : '';
+      return `<div class="sl${isNext?' on':''}"${onclick}>`+
+        `<div class="time">${c.time}</div><div class="dot"></div>`+
+        `<div class="info"><div class="c">${c.name}</div><div class="loc">${c.loc||'Location TBC'}</div></div>`+
+        tag+`</div>`;
+    }).join('');
+    toast(manualClasses.length+' classes added to your day');
+  }
+  go('perms');
+}
+function rwTab(p){
+  document.querySelectorAll('.rw-tab').forEach(t=>t.classList.toggle('on',t.dataset.p===p));
+  document.querySelectorAll('.rw-pane').forEach(pane=>pane.classList.remove('show'));
+  document.getElementById('pane-'+p).classList.add('show');
+}
+function redeem(el,cost){
+  if(el.classList.contains('redeemed')) return;
+  if(stats.total<cost){ toast('Not enough points yet — keep moving!'); return; }
+  stats.total-=cost; el.classList.add('redeemed'); el.textContent='Redeemed ✓';
+  syncRewards(); toast('Redeemed for '+cost+' pts 🎉');
+}
+
+/* ============ ADD A STOP ============ */
+let addDest=null, addTime=null;
+function openAddStop(){ document.getElementById('addStopModal').classList.add('show'); }
+function closeAddStop(){ document.getElementById('addStopModal').classList.remove('show'); }
+function pickDest(el){
+  document.querySelectorAll('#destGrid .dest').forEach(d=>d.classList.remove('sel'));
+  el.classList.add('sel'); addDest={name:el.dataset.d, loc:el.dataset.loc}; checkAdd();
+}
+function pickTime(el,t){
+  document.querySelectorAll('#timeRow .time-chip').forEach(c=>c.classList.remove('sel'));
+  el.classList.add('sel'); addTime=t; checkAdd();
+}
+function checkAdd(){ document.getElementById('msAddBtn').disabled = !(addDest&&addTime); }
+function confirmAddStop(){
+  const sched=document.getElementById('sched');
+  const div=document.createElement('div');
+  div.className='sl added';
+  div.innerHTML=`<div class="time">${addTime}</div><div class="dot"></div><div class="info"><div class="c">${addDest.name}</div><div class="loc">${addDest.loc}</div></div><div class="tag you">YOU</div>`;
+  sched.appendChild(div);
+  closeAddStop(); toast(addDest.name+' added to your day');
+  addDest=null; addTime=null;
+  document.querySelectorAll('#destGrid .dest,.time-chip').forEach(e=>e.classList.remove('sel'));
+  document.getElementById('msAddBtn').disabled=true;
+}
+
+/* ============ MAIN BUTTONS ============ */
+function startRoute(){ go('progress'); }
+
+/* ============ RESET ============ */
+function reset(){
+  stopNav();
+  stats={...BASE}; stepFree=false; kcalOn=false; track='auto'; selected='active';
+  routeFilter='all'; earnedFriendBonus=false; friendBonusArmed=true; paused=false; navRerouted=false;
+  document.getElementById('sfToggle').classList.remove('on');
+  document.getElementById('sfState').textContent='off';
+  document.getElementById('parkPatch').style.opacity='0';
+  document.getElementById('pfSwSF').classList.remove('on');
+  document.getElementById('pfSwKcal').classList.remove('on');
+  document.getElementById('inviteSub').textContent='Tap to invite — walk together for +30 bonus';
+  document.getElementById('mapSheet').classList.remove('collapsed');
+  setTrack('auto'); applyKcal();
+  document.querySelectorAll('#filters .filt').forEach(el=>el.classList.toggle('on',el.dataset.f==='all'));
+  document.querySelectorAll('#sched .sl.added').forEach(e=>e.remove());
+  // restore default My Campus Day (manual entries may have replaced it)
+  manualClasses=[];
+  document.getElementById('sched').innerHTML=
+    `<div class="sl"><div class="time">09:00</div><div class="dot"></div><div class="info"><div class="c">UDE1111 · Algorithms</div><div class="loc">Block A · A-203</div></div></div>`+
+    `<div class="sl on" onclick="go('map')"><div class="time">11:00</div><div class="dot"></div><div class="info"><div class="c">UDE2222 · SE Design</div><div class="loc">Block E · E-512</div></div><div class="tag">NEXT</div></div>`+
+    `<div class="sl"><div class="time">14:00</div><div class="dot"></div><div class="info"><div class="c">UDE3333 · Databases</div><div class="loc">Block C · C-104</div></div></div>`;
+  document.getElementById('mtName').value=''; document.getElementById('mtLoc').value='';
+  mtHour=11; mtMin=0; syncTimeUI(); closeTimePicker();
+  document.getElementById('mtAddBtn').disabled=true; renderManualList();
+  document.querySelectorAll('.perk .pcost.redeemed').forEach(p=>{
+    p.classList.remove('redeemed'); p.textContent=p.getAttribute('data-base')||p.textContent;
+  });
+  // reset sync screen
+  const box=document.getElementById('syncbox'); box.classList.remove('done');
+  document.getElementById('syncSt').textContent='Not connected yet';
+  const sb=document.getElementById('syncBtn'); sb.textContent='Sync university timetable'; sb.onclick=doSync;
+  syncHome(); syncRewards(); rwTab('ach');
+  pick('active'); go('welcome');
+}
+
+/* ============ INIT ============ */
+buildTabs();
+document.querySelectorAll('.perk .pcost').forEach(p=>p.setAttribute('data-base',p.textContent));
+syncMiniRoutes();
+pick('active');
+syncHome();
+syncRewards();
+syncTimeUI();         // init custom time picker
+applyKcal();          // calories hidden by default
+go('welcome');        // start at onboarding for the full app feel
+</script>
+
+<script>
+/* ===== ADDED: guided welcome + full-flow overlay logic (self-contained) ===== */
+(function(){
+  const ic = {
+    cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>',
+    bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+    leaf:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20c8 0 16-4 16-16C8 4 4 12 4 20Z"/><path d="M4 20c4-6 8-8 12-9"/></svg>',
+    trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M9 19h6M10 15v4M14 15v4"/></svg>',
+    users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M3 20a6 6 0 0 1 12 0M16 5a3.5 3.5 0 0 1 0 7M21 20a6 6 0 0 0-4-5.7"/></svg>',
+    refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>',
+    shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6Z"/><path d="M9 12l2 2 4-4"/></svg>',
+    stairs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h4v-4h4v-4h4V8h4V4"/></svg>',
+    flame:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s5 4 5 9a5 5 0 0 1-10 0c0-2 1-3 1-3s3 1 4-6Z"/></svg>',
+    x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'
+  };
+  const phases = [
+    {name:'Get set up', items:[
+      {code:'A1', t:'Welcome', s:'The one-line promise', go:'welcome'},
+      {code:'A2', t:'Sync timetable', s:'The effortless core', go:'sync'},
+      {code:'A3', t:'Permissions', s:'Privacy by design', go:'perms'}
+    ]},
+    {name:'The nudge', items:[
+      {code:'B1', t:'Home · My Campus Day', s:'Classes + your stops', go:'home'},
+      {code:'B2', t:'The nudge', s:'Low-pressure prompt', go:'lock'}
+    ]},
+    {name:'Choose to move', items:[
+      {code:'B3', t:'Campus map', s:'Try the step-free toggle', go:'map'},
+      {code:'B4', t:'Choose your route', s:'Points update live', go:'routes-pg'}
+    ]},
+    {name:'Arrive & earn', items:[
+      {code:'B5', t:'On the move', s:'Auto-tracking', go:'progress'},
+      {code:'B6', t:'Arrived · confirm', s:'Honest detection', go:'confirm'},
+      {code:'B7', t:'Points earned', s:'Movement, not calories', go:'points'},
+      {code:'B8', t:'Friend bonus', s:'The social high', go:'friend'}
+    ]},
+    {name:'Keep it going', items:[
+      {code:'E1', t:'Rewards', s:'Inclusive badges + perks', go:'rewards'}
+    ]},
+    {name:'Account & social', items:[
+      {code:'P', t:'Profile', s:'Settings + privacy', go:'profile'},
+      {code:'D1', t:'Friends', s:'Mutual opt-in', go:'friends'},
+      {code:'D2', t:'Add friend', s:'Send a request', go:'addfriend'},
+      {code:'D3', t:'Walk together', s:'Shared-walk invite', go:'walktogether'}
+    ]}
+  ];
+  const principles = [
+    [ic.cal,'Effortless by default','The synced timetable builds the day. Zero planning — the biggest barrier removed.'],
+    [ic.bell,'Low-pressure nudge','A calm prompt about 12 min before class. It invites movement, never guilt-trips.'],
+    [ic.stairs,'Inclusive in the moment','Step-free is a one-tap toggle that earns the same points — accessibility, not a penalty.'],
+    [ic.shield,'Honest about detection','We never claim perfect indoor tracking; a quick confirm fills the gap.'],
+    [ic.users,'Social, not competitive','Friends-only, mutual opt-in. It rewards the shared walk, not the destination.'],
+    [ic.flame,'Movement, not calories','Streaks and steps lead. Calories ship OFF by default to avoid an unhealthy framing.']
+  ];
+  function render(){
+    const divider = '<div style="align-self:center;color:var(--green-d);opacity:.55;font-weight:800;font-size:20px">&rsaquo;</div>';
+    const cols = phases.map(function(p,i){
+      const nodes = p.items.map(function(it){ return '<button class="su-node" onclick="suGo(\''+it.go+'\')"><span class="su-code">'+it.code+'</span><b>'+it.t+'</b><span>'+it.s+'</span></button>'; }).join('');
+      return '<div class="su-phase"><div class="su-ph-h"><span class="su-ph-n">'+(i+1)+'</span><span class="su-ph-name">'+p.name+'</span></div><div class="su-nodes">'+nodes+'</div></div>';
+    }).join(divider);
+    const repeat = '<div class="su-repeat">'+ic.refresh+'<b>Next day</b><span>The nudge returns — the habit loop repeats.</span></div>';
+    const princ = principles.map(function(p){ return '<div class="su-pcard"><div class="su-pic">'+p[0]+'</div><div><b>'+p[1]+'</b><span>'+p[2]+'</span></div></div>'; }).join('');
+    return ''
+      + '<button class="su-x" onclick="suCloseFlow()">'+ic.x+'</button>'
+      + '<h2>How StepUp Campus works</h2>'
+      + '<p class="su-lead">One continuous loop that turns trips students already make into active ones. Tap any screen below to jump straight to it in the live prototype.</p>'
+      + '<div class="su-loop">'
+      +   '<span class="su-lp">'+ic.cal+'Synced day</span><span class="su-ar">&rsaquo;</span>'
+      +   '<span class="su-lp">'+ic.bell+'Gentle nudge</span><span class="su-ar">&rsaquo;</span>'
+      +   '<span class="su-lp">'+ic.leaf+'Active route</span><span class="su-ar">&rsaquo;</span>'
+      +   '<span class="su-lp">'+ic.trophy+'Earn + streak</span><span class="su-ar">&rsaquo;</span>'
+      +   '<span class="su-lp">'+ic.users+'Move together</span>'
+      + '</div>'
+      + '<div class="su-map">'+cols+divider+repeat+'</div>'
+      + '<div class="su-princ-h">Why it works — the design principles</div>'
+      + '<div class="su-princ">'+princ+'</div>';
+  }
+  window.suOpenFlow=function(){ suCloseCoach(); var s=document.getElementById('suFlowSheet'); s.innerHTML=render(); s.scrollTop=0; document.getElementById('suFlow').classList.add('show'); };
+  window.suCloseFlow=function(){ document.getElementById('suFlow').classList.remove('show'); };
+  window.suCloseCoach=function(){ document.getElementById('suCoach').classList.remove('show'); };
+  window.suGo=function(id){ if(typeof go==='function') go(id); suCloseFlow(); suCloseCoach(); };
+  document.getElementById('suCoach').addEventListener('click',function(e){ if(e.target.id==='suCoach') suCloseCoach(); });
+  document.getElementById('suFlow').addEventListener('click',function(e){ if(e.target.id==='suFlow') suCloseFlow(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ suCloseFlow(); suCloseCoach(); } });
+})();
+</script>
+
+<script>
+/* ===== ADDED: auto-scale the phone to fit the window (no cutoff, no manual zoom) ===== */
+(function(){
+  var natH=812, natW=392;
+  var canZoom=('zoom' in document.documentElement.style);
+  function fit(){
+    var dev=document.querySelector('.device'); if(!dev) return;
+    var availH=window.innerHeight-56;   // body vertical padding (28*2)
+    var availW=window.innerWidth-32;    // body horizontal padding (16*2)
+    var k=Math.min(1, availH/natH);
+    if(availW<natW) k=Math.min(k, availW/natW);
+    if(k>=0.999){ dev.style.zoom=''; dev.style.transform=''; dev.style.marginBottom=''; return; }
+    if(canZoom){ dev.style.transform=''; dev.style.marginBottom=''; dev.style.zoom=k; }
+    else { dev.style.zoom=''; dev.style.transform='scale('+k+')'; dev.style.marginBottom=(-(natH*(1-k)))+'px'; }
+  }
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+  fit();
+})();
+</script>
+
+</body>
+</html>
